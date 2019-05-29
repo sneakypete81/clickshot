@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "clickshot"
+version = "0.1.0"
+description = "Easy GUI testing with pyautogui"
+authors = ["sneakypete81 <sneakypete81@gmail.com>"]
+license = "GPL-3.0"
+
+readme = "README.md"
+
+homepage = "https://github.com/sneakypete81/clickshot"
+repository = "https://github.com/sneakypete81/clickshot"
+documentation = "https://github.com/sneakypete81/clickshot"
+
+keywords = ["testing", "gui", "pyautogui"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Testing"
+]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+PyAutoGUI = "^0.9.42"
+
+[tool.poetry.dev-dependencies]
+pytest = "^4.5"
+PyHamcrest = "^1.9"
+flake8 = "^3.7"
+tox = "^3.12"
+black = {version = "^18.3-alpha.0",allows-prereleases = true}
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
