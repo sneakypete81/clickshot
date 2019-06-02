@@ -1,3 +1,4 @@
+from pathlib import Path
 import pyautogui
 
 
@@ -11,12 +12,18 @@ class Locater:
         screenshot = pyautogui.screenshot(region=expected_rect)
         self.last_screenshot = screenshot
 
+        # FileNotFoundError if the image doesn't exist
+        Path(image_path).resolve(strict=True)
+
         result = pyautogui.locate(str(image_path), screenshot)
         return result is not None
 
     def locate(self, image_path, boundary):
         screenshot = pyautogui.screenshot(region=boundary)
         self.last_screenshot = screenshot
+
+        # FileNotFoundError if the image doesn't exist
+        Path(image_path).resolve(strict=True)
 
         result = pyautogui.locate(str(image_path), screenshot)
         if result is None:
