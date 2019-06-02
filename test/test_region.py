@@ -1,13 +1,14 @@
 import pytest
 from unittest import mock
 from hamcrest import assert_that, is_
+from pathlib import Path
 
 from clickshot import Config, Region, ElementConfig
 
 
 @pytest.fixture
 def default_config():
-    return Config(image_dir="", screenshot_dir=None)
+    return Config("img", "scr")
 
 
 class TestRegion:
@@ -41,3 +42,10 @@ class TestRegion:
         assert_that(region._config, is_(default_config))
         assert_that(region.test.name, is_("test"))
         assert_that(region.test2.name, is_("test2"))
+
+    def test_the_default_config_paths_are_subdirectories_of_the_caller(self):
+        region = Region("area", config=Config(), element_configs=[])
+        this_dir = Path(__file__).parent
+
+        assert_that(region._config.image_dir, is_(this_dir / "images"))
+        assert_that(region._config.screenshot_dir, is_(this_dir / "screenshots"))
