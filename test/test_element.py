@@ -3,8 +3,8 @@ from unittest import mock
 from hamcrest import assert_that, is_, contains_string
 from pathlib import Path
 
-from clickshot import Config, Region, Element, ElementNotFoundError
-from clickshot.element import ConfiguredElement
+from clickshot import Config, Region, ElementConfig, ElementNotFoundError
+from clickshot.element import Element
 
 
 @pytest.fixture
@@ -35,8 +35,8 @@ class TestClick:
     ):
         Locater().location_matches_expected.return_value = True
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
         element.click()
 
@@ -48,8 +48,8 @@ class TestClick:
     def test_click_offset_is_applied(self, Locater, pyautogui, region):
         Locater().location_matches_expected.return_value = True
 
-        element = ConfiguredElement(
-            Element(
+        element = Element(
+            ElementConfig(
                 name="my_element", expected_rect=(0, 15, 10, 20), click_offset=(2, 3)
             ),
             region,
@@ -62,8 +62,8 @@ class TestClick:
         Locater().location_matches_expected.return_value = True
         region._config.screenshot_scaling = 2
 
-        element = ConfiguredElement(
-            Element(
+        element = Element(
+            ElementConfig(
                 name="my_element", expected_rect=(0, 15, 10, 20), click_offset=(2, 3)
             ),
             region,
@@ -78,8 +78,8 @@ class TestClick:
     ):
         Locater().location_matches_expected.return_value = True
 
-        element = ConfiguredElement(
-            Element(
+        element = Element(
+            ElementConfig(
                 name="my_element",
                 expected_rect=(0, 15, 10, 20),
                 post_click_delay_seconds=3.4,
@@ -97,8 +97,8 @@ class TestClick:
         Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(99, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
         )
         element.click()
 
@@ -116,8 +116,8 @@ class TestClick:
         Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(99, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
         )
 
         with pytest.warns(UserWarning):
@@ -129,9 +129,7 @@ class TestClick:
         Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=None), region
-        )
+        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
 
         with pytest.warns(UserWarning):
             element.click()
@@ -142,8 +140,8 @@ class TestClick:
         Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
         element.click()
 
@@ -156,8 +154,8 @@ class TestClick:
         Locater().locate.return_value = (0, 15, 10, 20)
         region._config.warn_for_delayed_detections = True
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
 
         with pytest.warns(UserWarning):
@@ -172,8 +170,8 @@ class TestClick:
 
         time.monotonic.side_effect = [0, 11, 21, 31, 41]
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
         element.save_last_screenshot = mock.Mock()
 
@@ -191,8 +189,8 @@ class TestClick:
 
         time.monotonic.side_effect = [0, 11, 21, 31, 41]
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
         element.save_last_screenshot = mock.Mock()
 
@@ -214,8 +212,8 @@ class TestClick:
 
         time.monotonic.side_effect = [0, 11, 21, 31, 41]
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
 
         element.click()
@@ -232,8 +230,8 @@ class TestClick:
 
         time.monotonic.side_effect = [0, 31]
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
         element.save_last_screenshot = mock.Mock()
 
@@ -251,8 +249,8 @@ class TestIsVisible:
     ):
         Locater().location_matches_expected.return_value = True
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
         result = element.is_visible()
 
@@ -268,8 +266,8 @@ class TestIsVisible:
         Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(99, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
         )
         result = element.is_visible()
 
@@ -287,8 +285,8 @@ class TestIsVisible:
         Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(99, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
         )
 
         with pytest.warns(UserWarning):
@@ -300,9 +298,7 @@ class TestIsVisible:
         Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=None), region
-        )
+        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
 
         with pytest.warns(UserWarning):
             element.is_visible()
@@ -313,8 +309,8 @@ class TestIsVisible:
         Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
         result = element.is_visible()
 
@@ -327,8 +323,8 @@ class TestIsVisible:
         Locater().locate.return_value = (0, 15, 10, 20)
         region._config.warn_for_delayed_detections = True
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
 
         with pytest.warns(UserWarning):
@@ -343,8 +339,8 @@ class TestIsVisible:
 
         time.monotonic.side_effect = [0, 11, 21, 31, 41]
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
 
         result = element.is_visible(timeout_seconds=30)
@@ -361,8 +357,8 @@ class TestIsVisible:
 
         time.monotonic.side_effect = [0, 11, 21, 31, 41]
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
 
         result = element.is_visible()
@@ -383,8 +379,8 @@ class TestIsVisible:
 
         time.monotonic.side_effect = [0, 11, 21, 31, 41]
 
-        element = ConfiguredElement(
-            Element(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
         )
 
         result = element.is_visible(timeout_seconds=30)
@@ -401,7 +397,7 @@ class TestSaveLastScreenshot:
         Locater().last_screenshot = screenshot
         save_screenshot.return_value = "screenshots/my_region-my-element.png"
 
-        element = ConfiguredElement(Element(name="my_element"), region)
+        element = Element(ElementConfig(name="my_element"), region)
         element.save_last_screenshot()
 
         save_screenshot.assert_called_with(
@@ -420,7 +416,7 @@ class TestSaveLastScreenshot:
     def test_screenshot_not_saved_if_it_is_none(self, Locater, save_screenshot, region):
         Locater().last_screenshot = None
 
-        element = ConfiguredElement(Element(name="my_element"), region)
+        element = Element(ElementConfig(name="my_element"), region)
         element.save_last_screenshot()
 
         assert_that(save_screenshot.called, is_(False))
@@ -428,6 +424,6 @@ class TestSaveLastScreenshot:
 
 class TestStr:
     def test_string_representation_is_informative(self, region):
-        element = ConfiguredElement(Element(name="my_element"), region)
+        element = Element(ElementConfig(name="my_element"), region)
 
         assert_that(str(element), is_("<Element name='my_element'>"))

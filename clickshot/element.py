@@ -9,14 +9,14 @@ from .locater import Locater, ElementNotFoundError
 from .screenshot import save_screenshot
 
 
-class Element(NamedTuple):
+class ElementConfig(NamedTuple):
     name: str
     expected_rect: tuple = None
     click_offset: tuple = None
     post_click_delay_seconds: int = 0
 
 
-class ConfiguredElement:
+class Element:
     def __init__(self, element, region):
         self.boundary = region._boundary
         self.config = region._config

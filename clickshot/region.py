@@ -1,19 +1,19 @@
 from collections import namedtuple
 
-from .element import ConfiguredElement
+from .element import Element
 
 
-def Region(name, config, elements, boundary=None):
-    element_names = [element.name for element in elements]
+def Region(name, config, element_configs, boundary=None):
+    element_names = [element.name for element in element_configs]
 
     class Region(namedtuple("RegionBase", element_names)):
-        def __new__(cls, name, config, elements, boundary):
+        def __new__(cls, name, config, element_configs, boundary):
             cls._name = name
             cls._config = config
             cls._boundary = boundary
-            configured_elements = [
-                ConfiguredElement(element, cls) for element in elements
+            elements = [
+                Element(element, cls) for element in element_configs
             ]
-            return super().__new__(cls, *configured_elements)
+            return super().__new__(cls, *elements)
 
-    return Region(name, config, elements, boundary)
+    return Region(name, config, element_configs, boundary)

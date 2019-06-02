@@ -2,7 +2,7 @@ import pytest
 from unittest import mock
 from hamcrest import assert_that, is_
 
-from clickshot import Config, Region, Element
+from clickshot import Config, Region, ElementConfig
 
 
 @pytest.fixture
@@ -12,13 +12,13 @@ def default_config():
 
 class TestRegion:
     def test_a_region_can_be_created_with_one_element(self, default_config):
-        element = mock.create_autospec(Element, spec_set=True)
+        element = mock.create_autospec(ElementConfig, spec_set=True)
         element.name = "test"
 
         region = Region(
             "screen",
             config=default_config,
-            elements=[element],
+            element_configs=[element],
             boundary=(0, 10, 32, 64),
         )
 
@@ -28,12 +28,14 @@ class TestRegion:
         assert_that(region._boundary, is_((0, 10, 32, 64)))
 
     def test_a_region_can_be_created_with_two_elements(self, default_config):
-        element = mock.create_autospec(Element, spec_set=True)
+        element = mock.create_autospec(ElementConfig, spec_set=True)
         element.name = "test"
-        element2 = mock.create_autospec(Element, spec_set=True)
+        element2 = mock.create_autospec(ElementConfig, spec_set=True)
         element2.name = "test2"
 
-        region = Region("area", config=default_config, elements=[element, element2])
+        region = Region(
+            "area", config=default_config, element_configs=[element, element2]
+        )
 
         assert_that(region._name, is_("area"))
         assert_that(region._config, is_(default_config))
