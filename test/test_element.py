@@ -1,6 +1,6 @@
 import pytest
 from unittest import mock
-from hamcrest import assert_that, is_, contains_string
+from hamcrest import assert_that, is_, contains_string, calling, raises
 from pathlib import Path
 
 from clickshot import Config, Region, ElementConfig, ElementNotFoundError
@@ -39,10 +39,237 @@ class TestClick:
         )
         element.click()
 
+        pyautogui.click.assert_called_with(5, 25)
         Locater().location_matches_expected.assert_called_with(
             Path("images/my_region-my_element.png"), (0, 15, 10, 20)
         )
+
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_element_is_clicked_if_found_just_before_timeout(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, True),
+            (31, True),
+            (41, True),
+            (51, True),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        )
+        element.save_last_screenshot = mock.Mock()
+
+        element.click()
+
         pyautogui.click.assert_called_with(5, 25)
+        Locater().location_matches_expected.assert_called_with(
+            Path("images/my_region-my_element.png"), (0, 15, 10, 20)
+        )
+        assert_that(next(time.monotonic.side_effect), is_(31))
+
+    @pytest.mark.filterwarnings("ignore:Location of my_element")
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_element_is_clicked_if_location_doesnt_match_expected(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+        Locater().locate.return_value = (0, 15, 10, 20)
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
+        )
+        element.click()
+
+        pyautogui.click.assert_called_with(5, 25)
+        Locater().location_matches_expected.assert_called_with(
+            Path("images/my_region-my_element.png"), (99, 15, 10, 20)
+        )
+        Locater().locate.assert_called_with(
+            Path("images/my_region-my_element.png"), (5, 10, 20, 30)
+        )
+        assert_that(next(time.monotonic.side_effect), is_(41))
+
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_warning_raised_if_location_doesnt_match_expected(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+        Locater().locate.return_value = (0, 15, 10, 20)
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
+        )
+
+        with pytest.warns(UserWarning):
+            element.click()
+
+    @pytest.mark.filterwarnings("ignore:Location of my_element")
+    def test_element_is_clicked_if_expected_location_is_none(
+        self, Locater, pyautogui, region
+    ):
+        Locater().locate.return_value = (0, 15, 10, 20)
+
+        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
+
+        element.click()
+
+        pyautogui.click.assert_called_with(5, 25)
+        Locater().locate.assert_called_with(
+            Path("images/my_region-my_element.png"), (5, 10, 20, 30)
+        )
+
+    def test_warning_raised_if_expected_location_is_none(
+        self, Locater, pyautogui, region
+    ):
+        Locater().location_matches_expected.return_value = False
+        Locater().locate.return_value = (0, 15, 10, 20)
+
+        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
+
+        with pytest.warns(UserWarning):
+            element.click()
+
+    @pytest.mark.filterwarnings("ignore:Location of my_element")
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_element_is_clicked_if_not_found_immediately_and_expected_location_is_none(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, ElementNotFoundError()),
+            (11, ElementNotFoundError()),
+            (21, ElementNotFoundError()),
+            (29, (0, 15, 10, 20)),
+            (31, (0, 15, 10, 20)),
+            (41, (0, 15, 10, 20)),
+            (51, (0, 15, 10, 20)),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().locate.side_effect = [s[1] for s in locate_timing]
+
+        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
+
+        element.click()
+
+        pyautogui.click.assert_called_with(5, 25)
+        Locater().locate.assert_called_with(
+            Path("images/my_region-my_element.png"), (5, 10, 20, 30)
+        )
+        assert_that(next(time.monotonic.side_effect), is_(31))
+
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_exception_raised_if_element_not_found_after_timeout(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+        Locater().locate.side_effect = ElementNotFoundError()
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        )
+        element.save_last_screenshot = mock.Mock()
+
+        assert_that(calling(element.click), raises(ElementNotFoundError))
+
+        assert_that(next(time.monotonic.side_effect), is_(41))
+
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_exception_raised_if_element_not_found_after_custom_timeout(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+        Locater().locate.side_effect = ElementNotFoundError()
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        )
+        element.save_last_screenshot = mock.Mock()
+
+        assert_that(
+            calling(element.click).with_args(timeout_seconds=40),
+            raises(ElementNotFoundError),
+        )
+
+        assert_that(next(time.monotonic.side_effect), is_(51))
+
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_screenshot_saved_if_element_not_found(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+        Locater().locate.side_effect = ElementNotFoundError()
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        )
+        element.save_last_screenshot = mock.Mock()
+
+        with pytest.raises(ElementNotFoundError):
+            element.click()
+
+        element.save_last_screenshot.assert_called()
 
     def test_click_offset_is_applied(self, Locater, pyautogui, region):
         Locater().location_matches_expected.return_value = True
@@ -71,147 +298,11 @@ class TestClick:
 
         pyautogui.click.assert_called_with(3, 14)
 
-    @pytest.mark.filterwarnings("ignore:Location of my_element")
-    def test_element_is_clicked_if_location_doesnt_match_expected(
-        self, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.return_value = (0, 15, 10, 20)
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
-        )
-        element.click()
-
-        Locater().location_matches_expected.assert_called_with(
-            Path("images/my_region-my_element.png"), (99, 15, 10, 20)
-        )
-        Locater().locate.assert_called_with(
-            Path("images/my_region-my_element.png"), (5, 10, 20, 30)
-        )
-        pyautogui.click.assert_called_with(5, 25)
-
-    def test_warning_raised_if_location_doesnt_match_expected(
-        self, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.return_value = (0, 15, 10, 20)
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
-        )
-
-        with pytest.warns(UserWarning):
-            element.click()
-
-    def test_warning_raised_if_expected_location_is_none(
-        self, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.return_value = (0, 15, 10, 20)
-
-        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
-
-        with pytest.warns(UserWarning):
-            element.click()
-
-    def test_element_is_clicked_even_if_not_present_immediately(
-        self, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.return_value = (0, 15, 10, 20)
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-        element.click()
-
-        pyautogui.click.assert_called_with(5, 25)
-
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_exception_raised_if_element_not_found_after_timeout(
-        self, time, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.side_effect = ElementNotFoundError()
-
-        time.monotonic.side_effect = [0, 11, 21, 31, 41]
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-        element.save_last_screenshot = mock.Mock()
-
-        with pytest.raises(ElementNotFoundError):
-            element.click()
-
-        assert_that(Locater().locate.call_count, is_(3))
-
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_exception_raised_if_element_not_found_after_custom_timeout(
-        self, time, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.side_effect = ElementNotFoundError()
-
-        time.monotonic.side_effect = [0, 11, 21, 31, 41]
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-        element.save_last_screenshot = mock.Mock()
-
-        with pytest.raises(ElementNotFoundError):
-            element.click(timeout_seconds=40)
-
-        assert_that(Locater().locate.call_count, is_(4))
-
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_element_clicked_if_found_just_before_timeout(
-        self, time, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.side_effect = [
-            ElementNotFoundError(),
-            ElementNotFoundError(),
-            (0, 15, 10, 20),
-        ]
-
-        time.monotonic.side_effect = [0, 11, 21, 31, 41]
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-
-        element.click()
-
-        pyautogui.click.assert_called_with(5, 25)
-        assert_that(Locater().locate.call_count, is_(3))
-
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_screenshot_saved_if_element_not_found(
-        self, time, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.side_effect = ElementNotFoundError()
-
-        time.monotonic.side_effect = [0, 31]
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-        element.save_last_screenshot = mock.Mock()
-
-        with pytest.raises(ElementNotFoundError):
-            element.click()
-
-        element.save_last_screenshot.assert_called()
-
 
 @mock.patch("clickshot.element.pyautogui")
 @mock.patch("clickshot.element.Locater", autospec=True, spec_set=True)
 class TestIsVisible:
-    def test_true_returned_if_location_matches_expected(
+    def test_returns_true_if_location_matches_expected(
         self, Locater, pyautogui, region
     ):
         Locater().location_matches_expected.return_value = True
@@ -226,16 +317,58 @@ class TestIsVisible:
             Path("images/my_region-my_element.png"), (0, 15, 10, 20)
         )
 
-    @pytest.mark.filterwarnings("ignore:Location of my_element")
-    def test_true_returned_if_location_doesnt_match_expected(
-        self, Locater, pyautogui, region
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_returns_true_if_found_just_before_timeout(
+        self, time, Locater, pyautogui, region
     ):
-        Locater().location_matches_expected.return_value = False
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, True),
+            (31, True),
+            (41, True),
+            (51, True),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        )
+
+        result = element.is_visible(timeout_seconds=30)
+
+        assert_that(result, is_(True))
+        Locater().location_matches_expected.assert_called_with(
+            Path("images/my_region-my_element.png"), (0, 15, 10, 20)
+        )
+        assert_that(next(time.monotonic.side_effect), is_(31))
+
+    @pytest.mark.filterwarnings("ignore:Location of my_element")
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_returns_true_if_location_doesnt_match_expected(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
         Locater().locate.return_value = (0, 15, 10, 20)
 
         element = Element(
             ElementConfig(name="my_element", expected_rect=(99, 15, 10, 20)), region
         )
+
         result = element.is_visible()
 
         assert_that(result, is_(True))
@@ -245,11 +378,24 @@ class TestIsVisible:
         Locater().locate.assert_called_with(
             Path("images/my_region-my_element.png"), (5, 10, 20, 30)
         )
+        assert_that(next(time.monotonic.side_effect), is_(21))
 
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
     def test_warning_raised_if_location_doesnt_match_expected(
-        self, Locater, pyautogui, region
+        self, time, Locater, pyautogui, region
     ):
-        Locater().location_matches_expected.return_value = False
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
         Locater().locate.return_value = (0, 15, 10, 20)
 
         element = Element(
@@ -259,10 +405,24 @@ class TestIsVisible:
         with pytest.warns(UserWarning):
             element.is_visible()
 
+    @pytest.mark.filterwarnings("ignore:Location of my_element")
+    def test_returns_true_if_expected_location_is_none(
+        self, Locater, pyautogui, region
+    ):
+        Locater().locate.return_value = (0, 15, 10, 20)
+
+        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
+
+        result = element.is_visible()
+
+        assert_that(result, is_(True))
+        Locater().locate.assert_called_with(
+            Path("images/my_region-my_element.png"), (5, 10, 20, 30)
+        )
+
     def test_warning_raised_if_expected_location_is_none(
         self, Locater, pyautogui, region
     ):
-        Locater().location_matches_expected.return_value = False
         Locater().locate.return_value = (0, 15, 10, 20)
 
         element = Element(ElementConfig(name="my_element", expected_rect=None), region)
@@ -270,27 +430,51 @@ class TestIsVisible:
         with pytest.warns(UserWarning):
             element.is_visible()
 
-    def test_returns_true_even_if_not_present_immediately(
-        self, Locater, pyautogui, region
+    @pytest.mark.filterwarnings("ignore:Location of my_element")
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_returns_true_if_not_found_immediately_and_expected_location_is_none(
+        self, time, Locater, pyautogui, region
     ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.return_value = (0, 15, 10, 20)
+        locate_timing = [
+            (0, ElementNotFoundError()),
+            (11, ElementNotFoundError()),
+            (21, ElementNotFoundError()),
+            (29, (0, 15, 10, 20)),
+            (31, (0, 15, 10, 20)),
+            (41, (0, 15, 10, 20)),
+            (51, (0, 15, 10, 20)),
+        ]
 
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-        result = element.is_visible()
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().locate.side_effect = [s[1] for s in locate_timing]
+
+        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
+
+        result = element.is_visible(timeout_seconds=30)
 
         assert_that(result, is_(True))
+        Locater().locate.assert_called_with(
+            Path("images/my_region-my_element.png"), (5, 10, 20, 30)
+        )
+        assert_that(next(time.monotonic.side_effect), is_(31))
 
     @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
     def test_returns_false_if_element_not_found_after_timeout(
         self, time, Locater, pyautogui, region
     ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.side_effect = ElementNotFoundError()
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
 
-        time.monotonic.side_effect = [0, 11, 21, 31, 41]
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+        Locater().locate.side_effect = ElementNotFoundError()
 
         element = Element(
             ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
@@ -299,16 +483,25 @@ class TestIsVisible:
         result = element.is_visible(timeout_seconds=30)
 
         assert_that(result, is_(False))
-        assert_that(Locater().locate.call_count, is_(3))
+        assert_that(next(time.monotonic.side_effect), is_(41))
 
     @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
     def test_returns_false_if_element_not_found_with_no_timeout_by_default(
         self, time, Locater, pyautogui, region
     ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.side_effect = ElementNotFoundError()
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
 
-        time.monotonic.side_effect = [0, 11, 21, 31, 41]
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+        Locater().locate.side_effect = ElementNotFoundError()
 
         element = Element(
             ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
@@ -317,29 +510,7 @@ class TestIsVisible:
         result = element.is_visible()
 
         assert_that(result, is_(False))
-        assert_that(Locater().locate.call_count, is_(1))
-
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_returns_true_if_found_just_before_timeout(
-        self, time, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.side_effect = [
-            ElementNotFoundError(),
-            ElementNotFoundError(),
-            (0, 15, 10, 20),
-        ]
-
-        time.monotonic.side_effect = [0, 11, 21, 31, 41]
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-
-        result = element.is_visible(timeout_seconds=30)
-
-        assert_that(result, is_(True))
-        assert_that(Locater().locate.call_count, is_(3))
+        assert_that(next(time.monotonic.side_effect), is_(21))
 
 
 @mock.patch("clickshot.element.save_screenshot", autospec=True, spec_set=True)

@@ -59,36 +59,55 @@ class Element:
             return False
 
     def _locate_centre_with_retry(self, timeout_seconds):
+        if self.expected_rect is None:
+            rect = self._locate_with_retry(timeout_seconds)
+        else:
+            if self._location_matches_expected_with_retry(timeout_seconds):
+                rect = self.expected_rect
+            else:
+                # Element is not where we expected it to be, so search in the boundary
+                rect = self._locate()
+
+        self._issue_warnings(rect)
+        return self._find_centre(rect)
+
+    def _locate_with_retry(self, timeout_seconds):
         start_time = time.monotonic()
         while True:
             try:
-                return self._locate_centre()
-
-            except (ElementNotFoundError):
-                if time.monotonic() - start_time > timeout_seconds:
+                return self._locate()
+            except ElementNotFoundError:
+                elapsed_time = time.monotonic() - start_time
+                if elapsed_time > timeout_seconds:
                     raise
 
-    def _locate_centre(self):
-        if self._locater.location_matches_expected(self.image_path, self.expected_rect):
-            return self._find_centre(self.expected_rect)
+    def _locate(self):
+        return self._locater.locate(self.image_path, self.boundary)
 
-        # Element is not where we expected it to be, so search in the boundary
-        result = self._locater.locate(self.image_path, self.boundary)
+    def _location_matches_expected_with_retry(self, timeout_seconds):
+        start_time = time.monotonic()
+        while True:
+            if self._location_matches_expected():
+                return True
+            if time.monotonic() - start_time > timeout_seconds:
+                return False
 
-        self._issue_warnings(result)
-        return self._find_centre(result)
+    def _location_matches_expected(self):
+        return self._locater.location_matches_expected(
+            self.image_path, self.expected_rect
+        )
 
-    def _issue_warnings(self, result):
-        if result == self.expected_rect:
+    def _issue_warnings(self, rect):
+        if rect == self.expected_rect:
             return
 
         if self.expected_rect is None:
             warnings.warn(
-                f"Location of {self.name} {tuple(result)} " f"has not been defined."
+                f"Location of {self.name} {tuple(rect)} " f"has not been defined."
             )
         else:
             warnings.warn(
-                f"Location of {self.name} {tuple(result)} "
+                f"Location of {self.name} {tuple(rect)} "
                 f"doesn't match expected {self.expected_rect}."
             )
 
