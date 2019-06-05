@@ -11,11 +11,6 @@ from clickshot.locater import Locater
 @patch("clickshot.locater.pyautogui")
 @patch("clickshot.locater.Path.resolve", autospec=True, spec_set=True)
 class TestLocationMatchesExpected:
-    def test_returns_false_if_expected_is_none(self, resolve_mock, pyautogui):
-        result = Locater().location_matches_expected("image", None)
-
-        assert_that(result, is_(False))
-
     def test_returns_true_if_image_is_in_the_screenshot(self, resolve_mock, pyautogui):
         pyautogui.locate.return_value = (1, 2, 3, 4)
 

@@ -6,9 +6,6 @@ class Locater:
     last_screenshot = None
 
     def location_matches_expected(self, image_path, expected_rect):
-        if expected_rect is None:
-            return False
-
         screenshot = pyautogui.screenshot(region=expected_rect)
         self.last_screenshot = screenshot
 
