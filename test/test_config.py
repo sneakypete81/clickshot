@@ -11,7 +11,6 @@ class TestConfig:
         assert_that(config.screenshot_dir, is_("/screenshots/"))
         assert_that(config.click_retry_seconds, is_(30))
         assert_that(config.screenshot_scaling, is_(1))
-        assert_that(config.warn_for_delayed_detections, is_(False))
 
     def test_config_can_be_loaded_from_dict(self):
         config_dict = {
@@ -19,7 +18,6 @@ class TestConfig:
             "screenshot_dir": "/scr/",
             "click_retry_seconds": 10,
             "screenshot_scaling": 2,
-            "warn_for_delayed_detections": True,
         }
 
         config = Config(**config_dict)
@@ -28,4 +26,3 @@ class TestConfig:
         assert_that(config.screenshot_dir, is_("/scr/"))
         assert_that(config.click_retry_seconds, is_(10))
         assert_that(config.screenshot_scaling, is_(2))
-        assert_that(config.warn_for_delayed_detections, is_(True))

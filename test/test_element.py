@@ -14,7 +14,6 @@ def config():
     config.screenshot_dir = "screenshots/"
     config.click_retry_seconds = 30
     config.screenshot_scaling = 1
-    config.warn_for_delayed_detections = False
     return config
 
 
@@ -72,24 +71,6 @@ class TestClick:
 
         pyautogui.click.assert_called_with(3, 14)
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_post_click_delay_seconds_are_applied(
-        self, time, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = True
-
-        element = Element(
-            ElementConfig(
-                name="my_element",
-                expected_rect=(0, 15, 10, 20),
-                post_click_delay_seconds=3.4,
-            ),
-            region,
-        )
-        element.click()
-
-        time.sleep.assert_called_with(3.4)
-
     @pytest.mark.filterwarnings("ignore:Location of my_element")
     def test_element_is_clicked_if_location_doesnt_match_expected(
         self, Locater, pyautogui, region
@@ -146,20 +127,6 @@ class TestClick:
         element.click()
 
         pyautogui.click.assert_called_with(5, 25)
-
-    def test_warning_raised_if_enabled_and_element_not_present_immediately(
-        self, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.return_value = (0, 15, 10, 20)
-        region._config.warn_for_delayed_detections = True
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-
-        with pytest.warns(UserWarning):
-            element.click()
 
     @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
     def test_exception_raised_if_element_not_found_after_timeout(
@@ -315,20 +282,6 @@ class TestIsVisible:
         result = element.is_visible()
 
         assert_that(result, is_(True))
-
-    def test_warning_raised_if_enabled_and_element_not_present_immediately(
-        self, Locater, pyautogui, region
-    ):
-        Locater().location_matches_expected.return_value = False
-        Locater().locate.return_value = (0, 15, 10, 20)
-        region._config.warn_for_delayed_detections = True
-
-        element = Element(
-            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
-        )
-
-        with pytest.warns(UserWarning):
-            element.is_visible()
 
     @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
     def test_returns_false_if_element_not_found_after_timeout(

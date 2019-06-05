@@ -13,7 +13,6 @@ class ElementConfig(NamedTuple):
     name: str
     expected_rect: tuple = None
     click_offset: tuple = None
-    post_click_delay_seconds: int = 0
 
 
 class Element:
@@ -31,8 +30,6 @@ class Element:
         self.click_offset = element.click_offset
         if self.click_offset is None:
             self.click_offset = (0, 0)
-
-        self.post_click_delay_seconds = element.post_click_delay_seconds
 
         self._locater = Locater()
 
@@ -53,9 +50,6 @@ class Element:
             (x + self.click_offset[0]) // self.config.screenshot_scaling,
             (y + self.click_offset[1]) // self.config.screenshot_scaling,
         )
-
-        if self.post_click_delay_seconds > 0:
-            time.sleep(self.post_click_delay_seconds)
 
     def is_visible(self, timeout_seconds=0):
         try:
@@ -86,21 +80,17 @@ class Element:
 
     def _issue_warnings(self, result):
         if result == self.expected_rect:
-            if self.config.warn_for_delayed_detections:
-                warnings.warn(
-                    f"Element {self.name} was not found immediately. "
-                    f"Perhaps add a post_click_delay to the previous click."
-                )
+            return
+
+        if self.expected_rect is None:
+            warnings.warn(
+                f"Location of {self.name} {tuple(result)} " f"has not been defined."
+            )
         else:
-            if self.expected_rect is None:
-                warnings.warn(
-                    f"Location of {self.name} {tuple(result)} " f"has not been defined."
-                )
-            else:
-                warnings.warn(
-                    f"Location of {self.name} {tuple(result)} "
-                    f"doesn't match expected {self.expected_rect}."
-                )
+            warnings.warn(
+                f"Location of {self.name} {tuple(result)} "
+                f"doesn't match expected {self.expected_rect}."
+            )
 
     def save_last_screenshot(self):
         screenshot = self._locater.last_screenshot
