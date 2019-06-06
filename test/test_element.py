@@ -19,7 +19,7 @@ def config():
 
 @pytest.fixture
 def region(config):
-    region = mock.create_autospec(Region, spec_set=True, instance=True)
+    region = mock.create_autospec(Region, instance=True)
     region._name = "my_region"
     region._boundary = (5, 10, 20, 30)
     region._config = config

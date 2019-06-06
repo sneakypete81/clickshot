@@ -1,29 +1,33 @@
-from collections import namedtuple
 from pathlib import Path
 import inspect
 
 from .element import Element
 
 
-def Region(name, config, element_configs, boundary=None):
-    element_names = [element.name for element in element_configs]
+class Region:
+    def __init__(self, name, config, boundary=None):
+        self._name = name
+        self._config = config
+        self._boundary = boundary
+        self._elements = []
 
-    if config.image_dir is None:
-        config = config._replace(image_dir=(_get_calling_dir() / "images"))
+        if self._config.image_dir is None:
+            self._config = self._config._replace(
+                image_dir=(_get_calling_dir() / "images")
+            )
+        if self._config.screenshot_dir is None:
+            self._config = self._config._replace(
+                screenshot_dir=(_get_calling_dir() / "screenshots")
+            )
 
-    if config.screenshot_dir is None:
-        config = config._replace(screenshot_dir=(_get_calling_dir() / "screenshots"))
+    def configure(self, element_configs):
+        self._elements = {e.name: Element(e, self) for e in element_configs}
+        return self
 
-    class Region(namedtuple("RegionBase", element_names)):
-        def __new__(cls, name, config, element_configs, boundary):
-            cls._name = name
-            cls._config = config
-            cls._boundary = boundary
-
-            elements = [Element(element, cls) for element in element_configs]
-            return super().__new__(cls, *elements)
-
-    return Region(name, config, element_configs, boundary)
+    def __getattr__(self, name):
+        if name not in self._elements:
+            raise AttributeError()
+        return self._elements[name]
 
 
 def _get_calling_dir():

@@ -16,12 +16,8 @@ class TestRegion:
         element = mock.create_autospec(ElementConfig, spec_set=True)
         element.name = "test"
 
-        region = Region(
-            "screen",
-            config=default_config,
-            element_configs=[element],
-            boundary=(0, 10, 32, 64),
-        )
+        region = Region("screen", default_config, boundary=(0, 10, 32, 64))
+        region.configure([element])
 
         assert_that(region._name, is_("screen"))
         assert_that(region._config, is_(default_config))
@@ -34,9 +30,7 @@ class TestRegion:
         element2 = mock.create_autospec(ElementConfig, spec_set=True)
         element2.name = "test2"
 
-        region = Region(
-            "area", config=default_config, element_configs=[element, element2]
-        )
+        region = Region("area", default_config).configure([element, element2])
 
         assert_that(region._name, is_("area"))
         assert_that(region._config, is_(default_config))
@@ -44,7 +38,7 @@ class TestRegion:
         assert_that(region.test2.name, is_("test2"))
 
     def test_the_default_config_paths_are_subdirectories_of_the_caller(self):
-        region = Region("area", config=Config(), element_configs=[])
+        region = Region("area", Config())
         this_dir = Path(__file__).parent
 
         assert_that(region._config.image_dir, is_(this_dir / "images"))
