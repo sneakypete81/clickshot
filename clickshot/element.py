@@ -76,7 +76,7 @@ class Element:
         while True:
             try:
                 return self._locate()
-            except ElementNotFoundError:
+            except (ElementNotFoundError, FileNotFoundError):
                 elapsed_time = time.monotonic() - start_time
                 if elapsed_time > timeout_seconds:
                     raise

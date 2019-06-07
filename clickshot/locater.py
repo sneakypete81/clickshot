@@ -9,8 +9,8 @@ class Locater:
         screenshot = pyautogui.screenshot(region=expected_rect)
         self.last_screenshot = screenshot
 
-        # FileNotFoundError if the image doesn't exist
-        Path(image_path).resolve(strict=True)
+        if not Path(image_path).exists():
+            return False
 
         result = pyautogui.locate(str(image_path), screenshot)
         return result is not None

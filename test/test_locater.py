@@ -9,9 +9,9 @@ from clickshot.locater import Locater
 
 
 @patch("clickshot.locater.pyautogui")
-@patch("clickshot.locater.Path.resolve", autospec=True, spec_set=True)
+@patch("clickshot.locater.Path.exists", autospec=True, spec_set=True, return_value=True)
 class TestLocationMatchesExpected:
-    def test_returns_true_if_image_is_in_the_screenshot(self, resolve_mock, pyautogui):
+    def test_returns_true_if_image_is_in_the_screenshot(self, exists_mock, pyautogui):
         pyautogui.locate.return_value = (1, 2, 3, 4)
 
         result = Locater().location_matches_expected("image", (10, 20))
@@ -19,7 +19,7 @@ class TestLocationMatchesExpected:
         assert_that(result, is_(True))
 
     def test_returns_false_if_image_is_outside_the_screenshot(
-        self, resolve_mock, pyautogui
+        self, exists_mock, pyautogui
     ):
         pyautogui.locate.return_value = None
 
@@ -27,24 +27,14 @@ class TestLocationMatchesExpected:
 
         assert_that(result, is_(False))
 
-    def test_raises_error_if_image_file_doesnt_exist(self, resolve_mock, pyautogui):
-        resolve_mock.side_effect = FileNotFoundError
+    def test_returns_false_if_image_file_doesnt_exist(self, exists_mock, pyautogui):
+        exists_mock.return_value = False
 
-        assert_that(
-            calling(Locater().location_matches_expected).with_args("image", (10, 20)),
-            raises(FileNotFoundError),
-        )
-        pyautogui.screenshot.assert_called()
+        result = Locater().location_matches_expected("image", (10, 20))
 
-    def test_screenshot_if_image_file_doesnt_exist(self, resolve_mock, pyautogui):
-        resolve_mock.side_effect = FileNotFoundError
+        assert_that(result, is_(False))
 
-        with pytest.raises(FileNotFoundError):
-            Locater().location_matches_expected("image", (1, 2, 3, 4)),
-
-        pyautogui.screenshot.assert_called()
-
-    def test_pyautogui_api_is_called_correctly(self, resolve_mock, pyautogui):
+    def test_pyautogui_api_is_called_correctly(self, exists_mock, pyautogui):
         pyautogui.screenshot.return_value = "Screenshot"
 
         Locater().location_matches_expected("image", (10, 20))
@@ -52,7 +42,7 @@ class TestLocationMatchesExpected:
         pyautogui.screenshot.assert_called_with(region=(10, 20))
         pyautogui.locate.assert_called_with("image", "Screenshot")
 
-    def test_converts_path_to_str(self, resolve_mock, pyautogui):
+    def test_converts_path_to_str(self, exists_mock, pyautogui):
         Locater().location_matches_expected(Path("image"), (10, 20))
 
         pyautogui.locate.assert_called_with("image", mock.ANY)

@@ -271,6 +271,61 @@ class TestClick:
 
         element.save_last_screenshot.assert_called()
 
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_screenshot_saved_after_retries_if_image_file_not_found(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, FileNotFoundError()),
+            (11, FileNotFoundError()),
+            (21, FileNotFoundError()),
+            (29, FileNotFoundError()),
+            (31, FileNotFoundError()),
+            (41, FileNotFoundError()),
+            (51, FileNotFoundError()),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().locate.side_effect = [s[1] for s in locate_timing]
+
+        element = Element(ElementConfig(name="my_element", expected_rect=None), region)
+        element.save_last_screenshot = mock.Mock()
+
+        with pytest.raises(FileNotFoundError):
+            element.click()
+
+        element.save_last_screenshot.assert_called()
+        assert_that(next(time.monotonic.side_effect), is_(41))
+
+    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
+    def test_screenshot_saved_after_retries_if_image_file_not_found_with_expected_rect(
+        self, time, Locater, pyautogui, region
+    ):
+        locate_timing = [
+            (0, False),
+            (11, False),
+            (21, False),
+            (29, False),
+            (31, False),
+            (41, False),
+            (51, False),
+        ]
+
+        time.monotonic.side_effect = [s[0] for s in locate_timing]
+        Locater().location_matches_expected.side_effect = [s[1] for s in locate_timing]
+        Locater().locate.side_effect = FileNotFoundError()
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region
+        )
+        element.save_last_screenshot = mock.Mock()
+
+        with pytest.raises(FileNotFoundError):
+            element.click()
+
+        element.save_last_screenshot.assert_called()
+        assert_that(next(time.monotonic.side_effect), is_(41))
+
     def test_click_offset_is_applied(self, Locater, pyautogui, region):
         Locater().location_matches_expected.return_value = True
 
