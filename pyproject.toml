@@ -18,7 +18,7 @@ python = "^3.6"
 PyAutoGUI = "0.9.42"
 
 [tool.poetry.dev-dependencies]
-pytest = "^4.5"
+pytest = "^5.2"
 PyHamcrest = "^1.9"
 flake8 = "^3.7"
 tox = "^3.12"
