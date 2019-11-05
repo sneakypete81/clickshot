@@ -11,13 +11,14 @@ install: pip install tox-travis poetry
 script: tox
 
 deploy:
-  provider: pypi
   skip_existing: true
-  distributions: sdist bdist_wheel
-  user: sneakypete81
-  password:
-    secure: tB8dmu4yKFtwCaigV65Sx1UANimolOVR6v9i7u24cf/1b+fREoW2vex2L6r8BbkLvSakkbvEU9xJRhVv2fau5zGI5m3eJeY4gXXD8IJy6tZLHUEKrLFbcvpTtqM6pMjkqQo+YRlfahanMiv0KNfPXYtSExqEblQs1IuKDyRwaWSZ0/Iu7Kl0sOUeq28UHjCLreMm2ha8rL09D49/XV78qfUH73jcaZh9zTaLSL/06rxW6oWFHR5fJyGYwQaZQyAmfxJzQk0rP3wL5PmE9sfC5p1rSBq+iqIqjWnKPh3XX3qhSVJjHalrKk1rfdwh8+xvpJy2JWL+wKPz7+tY02QJl/Q0CpsHG+5SwKAY5+bbK8d1z1DzwgEyWeTwVaOH+F3FxhwOtM1YN0q7KCCI+TW/YXfO4vrUokLYEvw7jdIhYH+OSHR5bxfgKdPDqacFDoyg3tw404HYIFPbCliOaQwGll/mTdXm2VlZU6an6mPaZLdHAQ+FQNG/DcBaBRhfbuCnpmp+TpnX3WAPwLeUPwKV6xuM6keuUCUDNrsFnmURoNdRaIvNV3u990oU/Qyr/LMjmPQvmjUac39CxS084DwRAgy6OyTvr996mGVpHRKoxECfEoGytCSVf0zQwJiOtTu7IrXXPdzR+nb/EVCu77Q/oCI1pSvTuvXRqJ7seeiVvuc=
+  skip_cleanup: true
+  provider: script
+  script: poetry publish --build --username sneakypete81 --password $PYPI_PASS
   on:
     tags: true
     repo: sneakypete81/clickshot
-    condition: $TOX_ENV = py37
+
+env:
+  global:
+    secure: M+OENLxY3iWo+j6JNeqU35F86DQv8puo+23Pbw0xaOo21EV7xx/8vdo4k+oUu03HByHGBChjnLXOQQJ0lsgYHrcHdAQoiCUHpb92p6SAJ0fFxVY8XGNBw1hqjZgcb7ohqWChAiTmEBMIsDjILVHnyShfQCxL4f+KsiUJ+sV8iyEu3nuoDJZ5IlYkiBWny22675KrfhIEmKdtixgJ/zNycExmeHd2UtDxwXkAVRc9AzNsuRtnK26k+OSFGtb4Bl3+pI6my1KDA8j8Yjdbhw7ClzzEIYYlPLLaKfnmpv4A/fTZjKfqrQOvLeTPoNxv46rXs0e5Ly4wrpwmiJs8glni2R/ftwXoFIsHD71Srwr+IziK9up9lxeY4OexUW/Hy7rYghkPfX7MCiQd8Oqg+xCnH8KqKhTe+3IV9vu1z8q1ETqAMGjM/K1OsAUlszzD/0VK5Qy3NtUxGDjDG40hZ7dCQEtIfAy3k8rS1154l2wicz7S/DlVwCJ41JrVAYdvzEFi7JvaPSsbbc2Iqj35xny2bMwcnVl8V7mSfPwsuqyLXA92ijGVlyfphGUyZL0IajE2Rl4hUJwWPybAqiV5ihWyZubEsk/shIpwBk7ukzn38uLlhHnVnzZN1CDmhBPk7g8cfTsvsBa4Hhk+Ox61qKB1uPVxUSl/+7kZpmoma7CcLx0=
