@@ -10,14 +10,15 @@ install: pip install tox-travis poetry
 
 script: tox
 
-deploy:
-  skip_existing: true
-  skip_cleanup: true
-  provider: script
-  script: poetry publish --build --username sneakypete81 --password $PYPI_PASS
-  on:
-    tags: true
-    repo: sneakypete81/clickshot
+jobs:
+  include:
+    - stage: deploy
+      script: poetry publish --build --username sneakypete81 --password $PYPI_PASS
+
+stages:
+  - test
+  - name: deploy
+    if: tag IS present AND repo = sneakypete81/clickshot
 
 env:
   global:
