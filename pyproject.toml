@@ -4,15 +4,9 @@ version = "0.1.0"
 description = "Easy GUI testing with pyautogui"
 authors = ["sneakypete81 <sneakypete81@gmail.com>"]
 license = "GPL-3.0"
-
 readme = "README.md"
-
-homepage = "https://github.com/sneakypete81/clickshot"
 repository = "https://github.com/sneakypete81/clickshot"
-documentation = "https://github.com/sneakypete81/clickshot"
-
 keywords = ["testing", "gui", "pyautogui"]
-
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

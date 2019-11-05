@@ -13,6 +13,10 @@ Pyautogui is installed automatically, but see the
 [pyautogui install documentation](https://pyautogui.readthedocs.io/en/latest/install.html)
 for platform-specific dependencies that you may need to install manually.
 
+## Usage
+
+TODO
+
 ## Development
 
 Requires [Poetry](https://poetry.eustace.io/).
