@@ -15,7 +15,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-PyAutoGUI = "^0.9.42"
+PyAutoGUI = "0.9.42"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.5"
