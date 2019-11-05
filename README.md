@@ -1,6 +1,6 @@
 # Clickshot
 
-[![PyPI](https://img.shields.io/pypi/v/clickshot.svg)](https://https://pypi.python.org/pypi/clickshot)
+[![PyPI](https://img.shields.io/pypi/v/clickshot.svg)](https://pypi.python.org/pypi/clickshot)
 [![Build Status](https://travis-ci.com/sneakypete81/clickshot.svg?branch=master)](https://travis-ci.com/sneakypete81/clickshot)
 
 Easy GUI testing with [pyautogui](https://github.com/asweigart/pyautogui).
