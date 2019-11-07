@@ -592,6 +592,30 @@ class TestSaveLastScreenshot:
             contains_string("Screenshot: screenshots/my_region-my-element.png\n"),
         )
 
+    def test_clipped_screenshot_saved(self, Locater, save_screenshot, region, capsys):
+        screenshot = mock.Mock()
+        cropped_screenshot = mock.sentinel.cropped_screenshot
+        screenshot.crop.return_value = cropped_screenshot
+        Locater().last_screenshot = screenshot
+        save_screenshot.return_value = "screenshots/my_region-my-element-cropped.png"
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(10, 20, 2, 3)), region
+        )
+        element.save_last_screenshot()
+
+        save_screenshot.assert_called_with(
+            cropped_screenshot, "screenshots/", "my_region-my_element-cropped"
+        )
+
+        stdout = capsys.readouterr().out
+        assert_that(
+            stdout,
+            contains_string(
+                "Cropped Screenshot: screenshots/my_region-my-element-cropped.png\n"
+            ),
+        )
+
     def test_screenshot_not_saved_if_it_is_none(self, Locater, save_screenshot, region):
         Locater().last_screenshot = None
 

@@ -123,6 +123,22 @@ class Element:
         print(f"Expected Image: {self.image_path}")
         print(f"Screenshot: {screenshot_path}")
 
+        if self.expected_rect is not None:
+            self._save_cropped_screenshot(screenshot)
+
+    def _save_cropped_screenshot(self, screenshot):
+        box = self._rect_to_box(self.expected_rect)
+        cropped_screenshot = screenshot.crop(box)
+
+        screenshot_path = save_screenshot(
+            cropped_screenshot, self.config.screenshot_dir, self.full_name + "-cropped"
+        )
+        print(f"Cropped Screenshot: {screenshot_path}")
+
     @staticmethod
     def _find_centre(rect):
         return (rect[0] + rect[2] // 2, rect[1] + rect[3] // 2)
+
+    @staticmethod
+    def _rect_to_box(rect):
+        return (rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3])
