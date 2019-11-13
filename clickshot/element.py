@@ -9,6 +9,10 @@ from .locater import Locater, ElementNotFoundError
 from .screenshot import save_screenshot
 
 
+# We perform our own failsafe, so disable the PyAutoGui one
+pyautogui.FAILSAFE = False
+
+
 class ElementConfig(NamedTuple):
     name: str
     expected_rect: tuple = None
@@ -72,6 +76,10 @@ class Element:
         return self._find_centre(rect)
 
     def _locate_with_retry(self, timeout_seconds):
+        # Ensure the mouse isn't in the abort position
+        if pyautogui.position() == (0, 0):
+            pyautogui.moveTo(10, 10)
+
         start_time = time.monotonic()
         while True:
             try:
@@ -81,15 +89,29 @@ class Element:
                 if elapsed_time > timeout_seconds:
                     raise
 
+                # Abort if mouse pointer gets moved to (0, 0)
+                if pyautogui.position() == (0, 0):
+                    warnings.warn("Aborted - mouse pointer moved to (0, 0)")
+                    raise
+
     def _locate(self):
         return self._locater.locate(self.image_path, self.boundary)
 
     def _location_matches_expected_with_retry(self, timeout_seconds):
+        # Ensure the mouse isn't in the abort position
+        if pyautogui.position() == (0, 0):
+            pyautogui.moveTo(10, 10)
+
         start_time = time.monotonic()
         while True:
             if self._location_matches_expected():
                 return True
             if time.monotonic() - start_time > timeout_seconds:
+                return False
+
+            # Abort if mouse pointer gets moved to (0, 0)
+            if pyautogui.position() == (0, 0):
+                warnings.warn("Aborted - mouse pointer moved to (0, 0)")
                 return False
 
     def _location_matches_expected(self):

@@ -339,6 +339,29 @@ class TestClick:
 
         pyautogui.click.assert_called_with(7, 28)
 
+    def test_failsafe_aborts_click_attempt(self, Locater, pyautogui, region):
+        Locater().location_matches_expected.return_value = False
+        Locater().locate.side_effect = ElementNotFoundError()
+        pyautogui.position.return_value = (0, 0)
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region,
+        )
+        with pytest.raises(ElementNotFoundError):
+            with pytest.warns(UserWarning):
+                element.click()
+
+    def test_mouse_is_moved_away_from_failsafe(self, Locater, pyautogui, region):
+        Locater().location_matches_expected.return_value = True
+        pyautogui.position.return_value = (0, 0)
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region,
+        )
+        element.click()
+
+        pyautogui.moveTo.assert_called_with(10, 10)
+
     def test_screenshot_scaling_is_applied(self, Locater, pyautogui, region):
         Locater().location_matches_expected.return_value = True
         region._config.screenshot_scaling = 2
@@ -566,6 +589,30 @@ class TestIsVisible:
 
         assert_that(result, is_(False))
         assert_that(next(time.monotonic.side_effect), is_(21))
+
+    def test_failsafe_aborts_is_visible_attempt(self, Locater, pyautogui, region):
+        Locater().location_matches_expected.return_value = False
+        Locater().locate.side_effect = ElementNotFoundError()
+        pyautogui.position.return_value = (0, 0)
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region,
+        )
+        with pytest.warns(UserWarning):
+            result = element.is_visible(30)
+
+        assert_that(result, is_(False))
+
+    def test_mouse_is_moved_away_from_failsafe(self, Locater, pyautogui, region):
+        Locater().location_matches_expected.return_value = True
+        pyautogui.position.return_value = (0, 0)
+
+        element = Element(
+            ElementConfig(name="my_element", expected_rect=(0, 15, 10, 20)), region,
+        )
+        element.is_visible(30)
+
+        pyautogui.moveTo.assert_called_with(10, 10)
 
 
 @mock.patch("clickshot.element.save_screenshot", autospec=True, spec_set=True)
