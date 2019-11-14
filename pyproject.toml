@@ -21,7 +21,7 @@ PyAutoGUI = "0.9.48"
 pytest = "^5.2"
 PyHamcrest = "^1.9"
 flake8 = "^3.7"
-tox = "^3.12"
+tox = "^3.14"
 black = {version = "^19.10b0",allows-prereleases = true}
 
 [build-system]
