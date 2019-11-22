@@ -1,7 +1,7 @@
 from pathlib import Path
 import inspect
 
-from .element import Element
+from .element import Element, ElementConfig
 
 
 class Region:
@@ -9,7 +9,7 @@ class Region:
         self._name = name
         self._config = config
         self._boundary = boundary
-        self._elements = []
+        self._elements = {}
 
         if self._config.image_dir is None:
             self._config = self._config._replace(
@@ -26,7 +26,7 @@ class Region:
 
     def __getattr__(self, name):
         if name not in self._elements:
-            raise AttributeError()
+            self._elements[name] = Element(ElementConfig(name), self)
         return self._elements[name]
 
 

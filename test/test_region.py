@@ -37,6 +37,11 @@ class TestRegion:
         assert_that(region.test.name, is_("test"))
         assert_that(region.test2.name, is_("test2"))
 
+    def test_a_region_is_automatically_created_when_accessed(self, default_config):
+        region = Region("screen", default_config, boundary=(0, 10, 32, 64))
+
+        assert_that(region.test.name, is_("test"))
+
     def test_the_default_config_paths_are_subdirectories_of_the_caller(self):
         region = Region("area", Config())
         this_dir = Path(__file__).parent
