@@ -3,18 +3,13 @@
 [![PyPI](https://img.shields.io/pypi/v/clickshot.svg)](https://pypi.python.org/pypi/clickshot)
 [![Build Status](https://travis-ci.com/sneakypete81/clickshot.svg?branch=master)](https://travis-ci.com/sneakypete81/clickshot)
 
-Easy GUI testing with [pyautogui](https://github.com/asweigart/pyautogui).
+A framework for easier cross-platform GUI testing.
 
 ## Installation
 
 ```sh
 pip install clickshot
-pip install opencv-python # Recommended for best performance
 ```
-
-Pyautogui is installed automatically, but see the
-[pyautogui install documentation](https://pyautogui.readthedocs.io/en/latest/install.html)
-for platform-specific dependencies that you may need to install manually.
 
 ## Usage
 
