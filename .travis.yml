@@ -6,9 +6,11 @@ python:
   - "3.6"
   - "3.7"
 
-install: pip install tox-travis poetry
+install: pip install tox-travis poetry codecov
 
 script: tox
+
+after_success: codecov
 
 jobs:
   include:
@@ -17,6 +19,7 @@ jobs:
 
 stages:
   - test
+  - coverage
   - name: deploy
     if: tag IS present AND repo = sneakypete81/clickshot
 
