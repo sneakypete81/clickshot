@@ -15,7 +15,11 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-PyAutoGUI = "0.9.48"
+opencv-python = "^4.1"
+pynput = "^1.4"
+mss = "^4.0"
+numpy = "^1.17"
+
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3"
