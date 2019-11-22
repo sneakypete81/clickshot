@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "clickshot"
-version = "0.2.0"
+version = "0.3.0"
 description = "Easy GUI testing with pyautogui"
 authors = ["sneakypete81 <sneakypete81@gmail.com>"]
 license = "GPL-3.0"
