@@ -2,6 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/clickshot.svg)](https://pypi.python.org/pypi/clickshot)
 [![Build Status](https://travis-ci.com/sneakypete81/clickshot.svg?branch=master)](https://travis-ci.com/sneakypete81/clickshot)
+[![Coverage](https://codecov.io/gh/sneakypete81/clickshot/graph/badge.svg)](https://codecov.io/gh/sneakypete81/clickshot)
 
 A framework for easier cross-platform GUI testing.
 
