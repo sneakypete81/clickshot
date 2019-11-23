@@ -38,6 +38,7 @@ class TestLocate:
         )
 
     def test_raises_error_if_image_file_doesnt_exist(self, mocker):
+        mocker.patch("clickshot.locater.ScreenGrabber")
         Image = mocker.patch("clickshot.locater.Image")
         Image.load.side_effect = FileNotFoundError
 
