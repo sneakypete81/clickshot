@@ -1,17 +1,17 @@
 from hamcrest import assert_that, is_, calling, raises
 import pytest
-from unittest.mock import patch
 
 from clickshot import ElementNotFoundError
 from clickshot.locater import Locater
 
 
-@patch("clickshot.locater.ScreenGrabber", autospec=True, spec_set=True)
-@patch("clickshot.locater.Image", autospec=True, spec_set=True)
 class TestLocate:
-    def test_returns_location_if_element_is_found(self, Image, ScreenGrabber):
+    def test_returns_location_if_element_is_found(self, mocker):
+        Image = mocker.patch("clickshot.locater.Image")
         screenshot = Image("Screenshot")
         screenshot.match_template.return_value = (4, 5, 6, 7)
+
+        ScreenGrabber = mocker.patch("clickshot.locater.ScreenGrabber")
         ScreenGrabber().grab.return_value = screenshot
 
         template = Image("Template")
@@ -24,9 +24,12 @@ class TestLocate:
         Image.load.assert_called_with("image")
         screenshot.match_template.assert_called_with(template)
 
-    def test_raises_error_if_element_is_not_found(self, Image, ScreenGrabber):
+    def test_raises_error_if_element_is_not_found(self, mocker):
+        Image = mocker.patch("clickshot.locater.Image")
         screenshot = Image("Screenshot")
         screenshot.match_template.side_effect = ElementNotFoundError
+
+        ScreenGrabber = mocker.patch("clickshot.locater.ScreenGrabber")
         ScreenGrabber().grab.return_value = screenshot
 
         assert_that(
@@ -34,7 +37,8 @@ class TestLocate:
             raises(ElementNotFoundError),
         )
 
-    def test_raises_error_if_image_file_doesnt_exist(self, Image, ScreenGrabber):
+    def test_raises_error_if_image_file_doesnt_exist(self, mocker):
+        Image = mocker.patch("clickshot.locater.Image")
         Image.load.side_effect = FileNotFoundError
 
         assert_that(
@@ -43,16 +47,17 @@ class TestLocate:
         )
 
 
-@patch("clickshot.locater.ScreenGrabber", autospec=True, spec_set=True)
-@patch("clickshot.locater.Image", autospec=True, spec_set=True)
 class TestLastScreenshot:
-    def test_last_screenshot_is_none_by_default(self, Image, ScreenGrabber):
+    def test_last_screenshot_is_none_by_default(self):
         locater = Locater()
 
         assert_that(locater.last_screenshot, is_(None))
 
-    def test_last_screenshot_is_updated_by_locate(self, Image, ScreenGrabber):
+    def test_last_screenshot_is_updated_by_locate(self, mocker):
+        Image = mocker.patch("clickshot.locater.Image")
         screenshot = Image("Screenshot")
+
+        ScreenGrabber = mocker.patch("clickshot.locater.ScreenGrabber")
         ScreenGrabber().grab.return_value = screenshot
 
         locater = Locater()
@@ -61,9 +66,12 @@ class TestLastScreenshot:
         assert_that(locater.last_screenshot, is_(screenshot))
 
     def test_last_screenshot_is_updated_by_locate_if_image_file_doesnt_exist(
-        self, Image, ScreenGrabber
+        self, mocker
     ):
+        Image = mocker.patch("clickshot.locater.Image")
         screenshot = Image("Screenshot")
+
+        ScreenGrabber = mocker.patch("clickshot.locater.ScreenGrabber")
         ScreenGrabber().grab.return_value = screenshot
 
         Image.load.side_effect = FileNotFoundError

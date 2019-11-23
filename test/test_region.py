@@ -1,5 +1,4 @@
 import pytest
-from unittest import mock
 from hamcrest import assert_that, is_
 from pathlib import Path
 
@@ -13,8 +12,7 @@ def default_config():
 
 class TestRegion:
     def test_a_region_can_be_created_with_one_element(self, default_config):
-        element = mock.create_autospec(ElementConfig, spec_set=True)
-        element.name = "test"
+        element = ElementConfig("test")
 
         region = Region("screen", default_config, boundary=(0, 10, 32, 64))
         region.configure([element])
@@ -25,10 +23,8 @@ class TestRegion:
         assert_that(region._boundary, is_((0, 10, 32, 64)))
 
     def test_a_region_can_be_created_with_two_elements(self, default_config):
-        element = mock.create_autospec(ElementConfig, spec_set=True)
-        element.name = "test"
-        element2 = mock.create_autospec(ElementConfig, spec_set=True)
-        element2.name = "test2"
+        element = ElementConfig("test")
+        element2 = ElementConfig("test2")
 
         region = Region("area", default_config).configure([element, element2])
 

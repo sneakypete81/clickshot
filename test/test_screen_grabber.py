@@ -1,4 +1,3 @@
-from unittest import mock
 from hamcrest import assert_that, is_
 import numpy
 import pytest
@@ -25,46 +24,49 @@ def rgb_array():
     )
 
 
-@mock.patch("clickshot.screen_grabber.mss", autospec=True, spec_set=True)
 class TestGrab:
-    def test_returns_rgb_image_from_mss(self, mss, pixels, rgb_array):
-        grabber = ScreenGrabber()
+    def test_returns_rgb_image_from_mss(self, mocker, pixels, rgb_array):
+        mss = mocker.patch("clickshot.screen_grabber.mss")
         mss().grab.return_value = pixels
+        grabber = ScreenGrabber()
 
         image = grabber.grab((0, 0, 2, 3))
 
         numpy.testing.assert_array_equal(image.data, rgb_array)
 
-    def test_passes_rect_parameter_to_mss(self, mss, pixels):
-        grabber = ScreenGrabber()
+    def test_passes_rect_parameter_to_mss(self, mocker, pixels):
+        mss = mocker.patch("clickshot.screen_grabber.mss")
         mss().grab.return_value = pixels
 
+        grabber = ScreenGrabber()
         grabber.grab((0, 1, 2, 3))
 
         mss().grab.assert_called_with({"left": 0, "top": 1, "width": 2, "height": 3})
 
-    def test_defaults_to_all_monitors(self, mss, pixels):
-        grabber = ScreenGrabber()
+    def test_defaults_to_all_monitors(self, mocker, pixels):
+        mss = mocker.patch("clickshot.screen_grabber.mss")
         mss().grab.return_value = pixels
         mss().monitors = [{"left": 0, "top": 1, "width": 200, "height": 300}]
 
+        grabber = ScreenGrabber()
         grabber.grab()
 
         mss().grab.assert_called_with(
             {"left": 0, "top": 1, "width": 200, "height": 300}
         )
 
-    @mock.patch("clickshot.screen_grabber.cv2.resize", autospec=True, spec_set=True)
-    def test_resizes_from_hidpi_monitor(self, resize_mock, mss, pixels, rgb_array):
-        grabber = ScreenGrabber()
+    def test_resizes_from_hidpi_monitor(self, mocker, pixels, rgb_array):
+        mss = mocker.patch("clickshot.screen_grabber.mss")
         mss().grab.return_value = pixels
-        resize_mock.return_value = mock.sentinel.resized_image
+        resize = mocker.patch("clickshot.screen_grabber.cv2.resize")
+        resize.return_value = mocker.sentinel.resized_image
 
         # Ask for a smaller region than is returned by mss().grab.
         # This indicates a HiDPI monitor, which should then be resized back to the
         # requested region size.
+        grabber = ScreenGrabber()
         image = grabber.grab((0, 0, 2, 1))
 
-        assert_that(image.data, is_(mock.sentinel.resized_image))
-        numpy.testing.assert_array_equal(resize_mock.call_args[0][0], rgb_array)
-        assert_that(resize_mock.call_args[0][1], is_((2, 1)))
+        assert_that(image.data, is_(mocker.sentinel.resized_image))
+        numpy.testing.assert_array_equal(resize.call_args[0][0], rgb_array)
+        assert_that(resize.call_args[0][1], is_((2, 1)))

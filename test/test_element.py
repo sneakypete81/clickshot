@@ -25,25 +25,27 @@ def region(config):
     return region
 
 
-@mock.patch("clickshot.element.Mouse", autospec=True, spec_test=True)
-@mock.patch("clickshot.element.Locater", autospec=True, spec_set=True)
 class TestClick:
-    def test_element_is_clicked(self, Locater, Mouse, region):
+    def test_element_is_clicked(self, mocker, region):
+        Mouse = mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
         Locater().locate.return_value = (0, 15, 10, 20)
+
         element = Element(ElementConfig(name="my_element"), region)
-        element.save_last_screenshot = mock.Mock()
+        element.save_last_screenshot = mocker.Mock()
 
         element.click()
 
-        Mouse().click.assert_called_with(x=5, y=25)
+        Mouse().click.assert_called_with(5, 25)
         Locater().locate.assert_called_with(
             Path("images/my_region-my_element.png"), region._boundary,
         )
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_element_is_clicked_if_found_just_before_timeout(
-        self, time, Locater, Mouse, region
-    ):
+    def test_element_is_clicked_if_found_just_before_timeout(self, mocker, region):
+        Mouse = mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        time = mocker.patch("clickshot.element.time")
+
         locate_timing = [
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
@@ -62,16 +64,17 @@ class TestClick:
 
         element.click()
 
-        Mouse().click.assert_called_with(x=5, y=25)
+        Mouse().click.assert_called_with(5, 25)
         Locater().locate.assert_called_with(
             Path("images/my_region-my_element.png"), region._boundary
         )
         assert_that(next(time.monotonic.side_effect), is_(31))
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_exception_raised_if_element_not_found_after_timeout(
-        self, time, Locater, Mouse, region
-    ):
+    def test_exception_raised_if_element_not_found_after_timeout(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        time = mocker.patch("clickshot.element.time")
+
         locate_timing = [
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
@@ -92,10 +95,13 @@ class TestClick:
 
         assert_that(next(time.monotonic.side_effect), is_(41))
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
     def test_exception_raised_if_element_not_found_after_custom_timeout(
-        self, time, Locater, Mouse, region
+        self, mocker, region
     ):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        time = mocker.patch("clickshot.element.time")
+
         locate_timing = [
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
@@ -119,10 +125,11 @@ class TestClick:
 
         assert_that(next(time.monotonic.side_effect), is_(51))
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_screenshot_saved_if_element_not_found_after_retries(
-        self, time, Locater, Mouse, region
-    ):
+    def test_screenshot_saved_if_element_not_found_after_retries(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        time = mocker.patch("clickshot.element.time")
+
         locate_timing = [
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
@@ -144,10 +151,13 @@ class TestClick:
 
         element.save_last_screenshot.assert_called()
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
     def test_screenshot_saved_if_image_file_not_found_after_retries(
-        self, time, Locater, Mouse, region
+        self, mocker, region
     ):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        time = mocker.patch("clickshot.element.time")
+
         locate_timing = [
             (0, FileNotFoundError()),
             (11, FileNotFoundError()),
@@ -170,7 +180,9 @@ class TestClick:
         element.save_last_screenshot.assert_called()
         assert_that(next(time.monotonic.side_effect), is_(41))
 
-    def test_click_offset_is_applied(self, Locater, Mouse, region):
+    def test_click_offset_is_applied(self, mocker, region):
+        Mouse = mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
         Locater().locate.return_value = (0, 15, 10, 20)
 
         element = Element(
@@ -178,11 +190,13 @@ class TestClick:
         )
         element.click()
 
-        Mouse().click.assert_called_with(x=7, y=28)
+        Mouse().click.assert_called_with(7, 28)
 
-    def test_failsafe_aborts_click_attempt(self, Locater, Mouse, region):
-        Locater().locate.side_effect = ElementNotFoundError()
+    def test_failsafe_aborts_click_attempt(self, mocker, region):
+        Mouse = mocker.patch("clickshot.element.Mouse")
         Mouse().get_position.return_value = (0, 0)
+        Locater = mocker.patch("clickshot.element.Locater")
+        Locater().locate.side_effect = ElementNotFoundError()
 
         element = Element(ElementConfig(name="my_element"), region)
         element.save_last_screenshot = mock.Mock()
@@ -191,20 +205,22 @@ class TestClick:
             with pytest.warns(UserWarning):
                 element.click()
 
-    def test_mouse_is_moved_away_from_failsafe(self, Locater, Mouse, region):
-        Locater().locate.return_value = (0, 15, 10, 20)
+    def test_mouse_is_moved_away_from_failsafe(self, mocker, region):
+        Mouse = mocker.patch("clickshot.element.Mouse")
         Mouse().get_position.return_value = (0, 0)
+        Locater = mocker.patch("clickshot.element.Locater")
+        Locater().locate.return_value = (0, 15, 10, 20)
 
         element = Element(ElementConfig(name="my_element"), region)
         element.click()
 
-        Mouse().move_to.assert_called_with(x=10, y=10)
+        Mouse().move_to.assert_called_with(10, 10)
 
 
-@mock.patch("clickshot.element.Mouse", autospec=True, spec_set=True)
-@mock.patch("clickshot.element.Locater", autospec=True, spec_set=True)
 class TestIsVisible:
-    def test_returns_true_if_element_is_found(self, Locater, Mouse, region):
+    def test_returns_true_if_element_is_found(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
         Locater().locate.return_value = (0, 15, 10, 20)
         element = Element(ElementConfig(name="my_element"), region)
 
@@ -215,10 +231,11 @@ class TestIsVisible:
             Path("images/my_region-my_element.png"), region._boundary
         )
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_returns_true_if_found_just_before_timeout(
-        self, time, Locater, Mouse, region
-    ):
+    def test_returns_true_if_found_just_before_timeout(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        time = mocker.patch("clickshot.element.time")
+
         locate_timing = [
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
@@ -242,10 +259,11 @@ class TestIsVisible:
         )
         assert_that(next(time.monotonic.side_effect), is_(31))
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
-    def test_returns_false_if_element_not_found_after_timeout(
-        self, time, Locater, Mouse, region
-    ):
+    def test_returns_false_if_element_not_found_after_timeout(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        time = mocker.patch("clickshot.element.time")
+
         locate_timing = [
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
@@ -266,10 +284,13 @@ class TestIsVisible:
         assert_that(result, is_(False))
         assert_that(next(time.monotonic.side_effect), is_(41))
 
-    @mock.patch("clickshot.element.time", autospec=True, spec_set=True)
     def test_returns_false_if_element_not_found_with_no_timeout_by_default(
-        self, time, Locater, Mouse, region
+        self, mocker, region
     ):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        time = mocker.patch("clickshot.element.time")
+
         locate_timing = [
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
@@ -290,9 +311,11 @@ class TestIsVisible:
         assert_that(result, is_(False))
         assert_that(next(time.monotonic.side_effect), is_(21))
 
-    def test_failsafe_aborts_is_visible_attempt(self, Locater, Mouse, region):
-        Locater().locate.side_effect = ElementNotFoundError()
+    def test_failsafe_aborts_is_visible_attempt(self, mocker, region):
+        Mouse = mocker.patch("clickshot.element.Mouse")
         Mouse().get_position.return_value = (0, 0)
+        Locater = mocker.patch("clickshot.element.Locater")
+        Locater().locate.side_effect = ElementNotFoundError()
 
         element = Element(ElementConfig(name="my_element"), region)
 
@@ -301,9 +324,11 @@ class TestIsVisible:
 
         assert_that(result, is_(False))
 
-    def test_mouse_is_moved_away_from_failsafe(self, Locater, Mouse, region):
-        Locater().locate.return_value = (0, 15, 10, 20)
+    def test_mouse_is_moved_away_from_failsafe(self, mocker, region):
+        Mouse = mocker.patch("clickshot.element.Mouse")
         Mouse().get_position.return_value = (0, 0)
+        Locater = mocker.patch("clickshot.element.Locater")
+        Locater().locate.return_value = (0, 15, 10, 20)
 
         element = Element(ElementConfig(name="my_element"), region)
 
@@ -312,10 +337,10 @@ class TestIsVisible:
         Mouse().move_to.assert_called_with(10, 10)
 
 
-@mock.patch("clickshot.element.Locater", autospec=True)
 class TestSaveLastScreenshot:
-    def test_screenshot_saved(self, Locater, region, capsys):
+    def test_screenshot_saved(self, mocker, region, capsys):
         screenshot = mock.Mock()
+        Locater = mocker.patch("clickshot.element.Locater")
         Locater().last_screenshot = screenshot
         screenshot.save.return_value = "screenshots/my_region-my-element.png"
 
@@ -333,7 +358,8 @@ class TestSaveLastScreenshot:
             contains_string("Screenshot: screenshots/my_region-my-element.png\n"),
         )
 
-    def test_screenshot_not_saved_if_it_is_none(self, Locater, region):
+    def test_screenshot_not_saved_if_it_is_none(self, mocker, region):
+        Locater = mocker.patch("clickshot.element.Locater")
         Locater().last_screenshot = None
 
         element = Element(ElementConfig(name="my_element"), region)
