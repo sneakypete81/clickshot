@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "clickshot"
-version = "0.3.0"
+version = "0.4.0"
 description = "A framework for easier cross-platform GUI testing."
 authors = ["sneakypete81 <sneakypete81@gmail.com>"]
 license = "GPL-3.0"
