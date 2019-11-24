@@ -1,7 +1,7 @@
 from hamcrest import assert_that, is_, calling, raises
 import pytest
 
-from clickshot import ElementNotFoundError
+from clickshot import ElementNotFoundError, Rect
 from clickshot.locater import Locater
 
 
@@ -9,7 +9,7 @@ class TestLocate:
     def test_returns_location_if_element_is_found(self, mocker):
         Image = mocker.patch("clickshot.locater.Image")
         screenshot = Image("Screenshot")
-        screenshot.match_template.return_value = (4, 5, 6, 7)
+        screenshot.match_template.return_value = Rect(left=4, top=5, width=6, height=7)
 
         ScreenGrabber = mocker.patch("clickshot.locater.ScreenGrabber")
         ScreenGrabber().grab.return_value = screenshot
@@ -17,10 +17,10 @@ class TestLocate:
         template = Image("Template")
         Image.load.return_value = template
 
-        result = Locater().locate("image", (1, 2, 3, 4))
+        result = Locater().locate("image", Rect(left=1, top=2, width=3, height=4))
 
-        assert_that(result, is_((4, 5, 6, 7)))
-        ScreenGrabber().grab.assert_called_with((1, 2, 3, 4))
+        assert_that(result, is_(Rect(left=4, top=5, width=6, height=7)))
+        ScreenGrabber().grab.assert_called_with(Rect(left=1, top=2, width=3, height=4))
         Image.load.assert_called_with("image")
         screenshot.match_template.assert_called_with(template)
 
@@ -33,7 +33,8 @@ class TestLocate:
         ScreenGrabber().grab.return_value = screenshot
 
         assert_that(
-            calling(Locater().locate).with_args("image", (1, 2, 3, 4)),
+            calling(Locater().locate).with_args(
+                "image", Rect(left=1, top=2, width=3, height=4)),
             raises(ElementNotFoundError),
         )
 
@@ -43,7 +44,8 @@ class TestLocate:
         Image.load.side_effect = FileNotFoundError
 
         assert_that(
-            calling(Locater().locate).with_args("image", (1, 2, 3, 4)),
+            calling(Locater().locate).with_args(
+                "image", Rect(left=1, top=2, width=3, height=4)),
             raises(FileNotFoundError),
         )
 
@@ -62,7 +64,7 @@ class TestLastScreenshot:
         ScreenGrabber().grab.return_value = screenshot
 
         locater = Locater()
-        locater.locate("image", (1, 2, 3, 4))
+        locater.locate("image", Rect(left=1, top=2, width=3, height=4))
 
         assert_that(locater.last_screenshot, is_(screenshot))
 
@@ -79,6 +81,6 @@ class TestLastScreenshot:
 
         locater = Locater()
         with pytest.raises(FileNotFoundError):
-            locater.locate("image", (1, 2, 3, 4))
+            locater.locate("image", Rect(left=1, top=2, width=3, height=4))
 
         assert_that(locater.last_screenshot, is_(screenshot))

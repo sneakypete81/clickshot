@@ -93,4 +93,4 @@ class Element:
 
     @staticmethod
     def _find_centre(rect):
-        return (rect[0] + rect[2] // 2, rect[1] + rect[3] // 2)
+        return (rect.left + rect.width // 2, rect.top + rect.height // 2)

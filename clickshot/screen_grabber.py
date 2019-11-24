@@ -13,12 +13,7 @@ class ScreenGrabber:
         if rect is None:
             monitor = self._mss.monitors[0]
         else:
-            monitor = {
-                "left": rect[0],
-                "top": rect[1],
-                "width": rect[2],
-                "height": rect[3],
-            }
+            monitor = rect._asdict()
 
         rgba_screenshot = numpy.array(self._mss.grab(monitor))
         rgb_screenshot = cv2.cvtColor(rgba_screenshot, cv2.COLOR_RGBA2RGB)

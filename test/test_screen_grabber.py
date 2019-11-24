@@ -2,6 +2,7 @@ from hamcrest import assert_that, is_
 import numpy
 import pytest
 
+from clickshot import Rect
 from clickshot.screen_grabber import ScreenGrabber
 from mss.screenshot import ScreenShot as PixelArray
 
@@ -30,7 +31,7 @@ class TestGrab:
         mss().grab.return_value = pixels
         grabber = ScreenGrabber()
 
-        image = grabber.grab((0, 0, 2, 3))
+        image = grabber.grab(Rect(left=0, top=1, width=2, height=3))
 
         numpy.testing.assert_array_equal(image.data, rgb_array)
 
@@ -39,7 +40,7 @@ class TestGrab:
         mss().grab.return_value = pixels
 
         grabber = ScreenGrabber()
-        grabber.grab((0, 1, 2, 3))
+        grabber.grab(Rect(left=0, top=1, width=2, height=3))
 
         mss().grab.assert_called_with({"left": 0, "top": 1, "width": 2, "height": 3})
 
@@ -65,7 +66,7 @@ class TestGrab:
         # This indicates a HiDPI monitor, which should then be resized back to the
         # requested region size.
         grabber = ScreenGrabber()
-        image = grabber.grab((0, 0, 2, 1))
+        image = grabber.grab(Rect(left=0, top=0, width=2, height=1))
 
         assert_that(image.data, is_(mocker.sentinel.resized_image))
         numpy.testing.assert_array_equal(resize.call_args[0][0], rgb_array)

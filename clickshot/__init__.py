@@ -8,6 +8,7 @@ from .exceptions import ElementNotFoundError
 from .keyboard import Keyboard, Key, KeyCode
 from .mouse import Mouse, Button
 from .region import Region
+from .types import Rect
 
 __all__ = [
     Config,
@@ -19,4 +20,5 @@ __all__ = [
     Mouse,
     Button,
     Region,
+    Rect
 ]

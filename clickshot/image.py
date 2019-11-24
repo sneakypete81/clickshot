@@ -2,6 +2,7 @@ from pathlib import Path
 import cv2
 
 from .exceptions import ElementNotFoundError
+from .types import Rect
 
 
 class Image:
@@ -33,11 +34,11 @@ class Image:
 
         if minVal > threshold:
             raise ElementNotFoundError
-        return (
-            minLoc[0],
-            minLoc[1],
-            template.width,
-            template.height,
+        return Rect(
+            left=minLoc[0],
+            top=minLoc[1],
+            width=template.width,
+            height=template.height,
         )
 
     @staticmethod

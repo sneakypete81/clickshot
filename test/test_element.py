@@ -3,9 +3,8 @@ from unittest import mock
 from hamcrest import assert_that, is_, has_item, contains_string, calling, raises
 from pathlib import Path
 
-from clickshot import Config, Region, ElementConfig, ElementNotFoundError
+from clickshot import Button, Config, ElementConfig, ElementNotFoundError, Rect, Region
 from clickshot.element import Element
-from clickshot.mouse import Button
 
 
 @pytest.fixture
@@ -21,7 +20,7 @@ def config():
 def region(config):
     region = mock.create_autospec(Region, instance=True)
     region._name = "my_region"
-    region._boundary = (5, 10, 20, 30)
+    region._boundary = Rect(left=5, top=10, width=20, height=30)
     region._config = config
     return region
 
@@ -30,7 +29,7 @@ class TestClick:
     def test_element_is_clicked(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")
         Locater = mocker.patch("clickshot.element.Locater")
-        Locater().locate.return_value = (0, 15, 10, 20)
+        Locater().locate.return_value = Rect(left=0, top=15, width=10, height=20)
 
         element = Element(ElementConfig(name="my_element"), region)
         element.save_last_screenshot = mocker.Mock()
@@ -52,10 +51,10 @@ class TestClick:
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
             (21, ElementNotFoundError()),
-            (29, (0, 15, 10, 20)),
-            (31, (0, 15, 10, 20)),
-            (41, (0, 15, 10, 20)),
-            (51, (0, 15, 10, 20)),
+            (29, Rect(left=0, top=15, width=10, height=20)),
+            (31, Rect(left=0, top=15, width=10, height=20)),
+            (41, Rect(left=0, top=15, width=10, height=20)),
+            (51, Rect(left=0, top=15, width=10, height=20)),
         ]
 
         time.monotonic.side_effect = [s[0] for s in locate_timing]
@@ -186,7 +185,7 @@ class TestClick:
     def test_click_offset_is_applied(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")
         Locater = mocker.patch("clickshot.element.Locater")
-        Locater().locate.return_value = (0, 15, 10, 20)
+        Locater().locate.return_value = Rect(left=0, top=15, width=10, height=20)
 
         element = Element(
             ElementConfig(name="my_element", click_offset=(2, 3)), region,
@@ -217,7 +216,7 @@ class TestClick:
         type(Mouse()).position = position_mock
 
         Locater = mocker.patch("clickshot.element.Locater")
-        Locater().locate.return_value = (0, 15, 10, 20)
+        Locater().locate.return_value = Rect(left=0, top=15, width=10, height=20)
 
         element = Element(ElementConfig(name="my_element"), region)
         element.click()
@@ -229,7 +228,7 @@ class TestIsVisible:
     def test_returns_true_if_element_is_found(self, mocker, region):
         mocker.patch("clickshot.element.Mouse")
         Locater = mocker.patch("clickshot.element.Locater")
-        Locater().locate.return_value = (0, 15, 10, 20)
+        Locater().locate.return_value = Rect(left=0, top=15, width=10, height=20)
         element = Element(ElementConfig(name="my_element"), region)
 
         result = element.is_visible()
@@ -248,10 +247,10 @@ class TestIsVisible:
             (0, ElementNotFoundError()),
             (11, ElementNotFoundError()),
             (21, ElementNotFoundError()),
-            (29, (0, 15, 10, 20)),
-            (31, (0, 15, 10, 20)),
-            (41, (0, 15, 10, 20)),
-            (51, (0, 15, 10, 20)),
+            (29, Rect(left=0, top=15, width=10, height=20)),
+            (31, Rect(left=0, top=15, width=10, height=20)),
+            (41, Rect(left=0, top=15, width=10, height=20)),
+            (51, Rect(left=0, top=15, width=10, height=20)),
         ]
 
         time.monotonic.side_effect = [s[0] for s in locate_timing]
@@ -340,7 +339,7 @@ class TestIsVisible:
         type(Mouse()).position = position_mock
 
         Locater = mocker.patch("clickshot.element.Locater")
-        Locater().locate.return_value = (0, 15, 10, 20)
+        Locater().locate.return_value = Rect(left=0, top=15, width=10, height=20)
 
         element = Element(ElementConfig(name="my_element"), region)
 

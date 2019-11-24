@@ -2,7 +2,7 @@ import pytest
 from hamcrest import assert_that, is_
 from pathlib import Path
 
-from clickshot import Config, Region, ElementConfig
+from clickshot import Config, Rect, Region, ElementConfig
 
 
 @pytest.fixture
@@ -14,13 +14,14 @@ class TestRegion:
     def test_a_region_can_be_created_with_one_element(self, default_config):
         element = ElementConfig("test")
 
-        region = Region("screen", default_config, boundary=(0, 10, 32, 64))
+        region = Region(
+            "screen", default_config, boundary=Rect(left=0, top=10, width=32, height=8))
         region.configure([element])
 
         assert_that(region._name, is_("screen"))
         assert_that(region._config, is_(default_config))
         assert_that(region.test.name, is_("test"))
-        assert_that(region._boundary, is_((0, 10, 32, 64)))
+        assert_that(region._boundary, is_(Rect(left=0, top=10, width=32, height=8)))
 
     def test_a_region_can_be_created_with_two_elements(self, default_config):
         element = ElementConfig("test")
@@ -34,7 +35,8 @@ class TestRegion:
         assert_that(region.test2.name, is_("test2"))
 
     def test_a_region_is_automatically_created_when_accessed(self, default_config):
-        region = Region("screen", default_config, boundary=(0, 10, 32, 64))
+        region = Region(
+            "screen", default_config, boundary=Rect(left=0, top=10, width=32, height=8))
 
         assert_that(region.test.name, is_("test"))
 
