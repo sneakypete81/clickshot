@@ -1,10 +1,11 @@
 import pytest
 from unittest import mock
-from hamcrest import assert_that, is_, contains_string, calling, raises
+from hamcrest import assert_that, is_, has_item, contains_string, calling, raises
 from pathlib import Path
 
 from clickshot import Config, Region, ElementConfig, ElementNotFoundError
 from clickshot.element import Element
+from clickshot.mouse import Button
 
 
 @pytest.fixture
@@ -36,7 +37,8 @@ class TestClick:
 
         element.click()
 
-        Mouse().click.assert_called_with(5, 25)
+        assert_that(Mouse().position, is_((5, 25)))
+        Mouse().click.assert_called_with(Button.left)
         Locater().locate.assert_called_with(
             Path("images/my_region-my_element.png"), region._boundary,
         )
@@ -64,7 +66,8 @@ class TestClick:
 
         element.click()
 
-        Mouse().click.assert_called_with(5, 25)
+        assert_that(Mouse().position, is_((5, 25)))
+        Mouse().click.assert_called_with(Button.left)
         Locater().locate.assert_called_with(
             Path("images/my_region-my_element.png"), region._boundary
         )
@@ -190,11 +193,14 @@ class TestClick:
         )
         element.click()
 
-        Mouse().click.assert_called_with(7, 28)
+        assert_that(Mouse().position, is_((7, 28)))
+        Mouse().click.assert_called_with(Button.left)
 
     def test_failsafe_aborts_click_attempt(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")
-        Mouse().get_position.return_value = (0, 0)
+        position_mock = mocker.PropertyMock(return_value=(0, 0))
+        type(Mouse()).position = position_mock
+
         Locater = mocker.patch("clickshot.element.Locater")
         Locater().locate.side_effect = ElementNotFoundError()
 
@@ -207,14 +213,16 @@ class TestClick:
 
     def test_mouse_is_moved_away_from_failsafe(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")
-        Mouse().get_position.return_value = (0, 0)
+        position_mock = mocker.PropertyMock(return_value=(0, 0))
+        type(Mouse()).position = position_mock
+
         Locater = mocker.patch("clickshot.element.Locater")
         Locater().locate.return_value = (0, 15, 10, 20)
 
         element = Element(ElementConfig(name="my_element"), region)
         element.click()
 
-        Mouse().move_to.assert_called_with(10, 10)
+        assert_that(position_mock.mock_calls, has_item(mock.call((10, 10))))
 
 
 class TestIsVisible:
@@ -313,7 +321,9 @@ class TestIsVisible:
 
     def test_failsafe_aborts_is_visible_attempt(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")
-        Mouse().get_position.return_value = (0, 0)
+        position_mock = mocker.PropertyMock(return_value=(0, 0))
+        type(Mouse()).position = position_mock
+
         Locater = mocker.patch("clickshot.element.Locater")
         Locater().locate.side_effect = ElementNotFoundError()
 
@@ -326,7 +336,9 @@ class TestIsVisible:
 
     def test_mouse_is_moved_away_from_failsafe(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")
-        Mouse().get_position.return_value = (0, 0)
+        position_mock = mocker.PropertyMock(return_value=(0, 0))
+        type(Mouse()).position = position_mock
+
         Locater = mocker.patch("clickshot.element.Locater")
         Locater().locate.return_value = (0, 15, 10, 20)
 
@@ -334,7 +346,7 @@ class TestIsVisible:
 
         element.is_visible(30)
 
-        Mouse().move_to.assert_called_with(10, 10)
+        assert_that(position_mock.mock_calls, has_item(mock.call((10, 10))))
 
 
 class TestSaveLastScreenshot:

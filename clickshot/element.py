@@ -5,7 +5,7 @@ import warnings
 
 from .exceptions import ElementNotFoundError
 from .locater import Locater
-from .mouse import Mouse
+from .mouse import Mouse, Button
 
 
 class ElementConfig(NamedTuple):
@@ -43,7 +43,9 @@ class Element:
             self.save_last_screenshot()
             raise
 
-        self._mouse.click(x + self.click_offset[0], y + self.click_offset[1])
+        self._mouse.position = (x + self.click_offset[0], y + self.click_offset[1])
+        time.sleep(0.01)
+        self._mouse.click(Button.left)
 
     def is_visible(self, timeout_seconds=0):
         try:
@@ -58,8 +60,8 @@ class Element:
 
     def _locate_with_retry(self, timeout_seconds):
         # Ensure the mouse isn't in the abort position
-        if self._mouse.get_position() == (0, 0):
-            self._mouse.move_to(10, 10)
+        if self._mouse.position == (0, 0):
+            self._mouse.position = (10, 10)
 
         start_time = time.monotonic()
         while True:
@@ -71,7 +73,7 @@ class Element:
                     raise
 
                 # Abort if mouse pointer gets moved to (0, 0)
-                if self._mouse.get_position() == (0, 0):
+                if self._mouse.position == (0, 0):
                     warnings.warn("Aborted - mouse pointer moved to (0, 0)")
                     raise
 
