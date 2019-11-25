@@ -20,5 +20,5 @@ __all__ = [
     Mouse,
     Button,
     Region,
-    Rect
+    Rect,
 ]

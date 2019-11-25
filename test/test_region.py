@@ -15,7 +15,8 @@ class TestRegion:
         element = ElementConfig("test")
 
         region = Region(
-            "screen", default_config, boundary=Rect(left=0, top=10, width=32, height=8))
+            "screen", default_config, boundary=Rect(left=0, top=10, width=32, height=8)
+        )
         region.configure([element])
 
         assert_that(region._name, is_("screen"))
@@ -36,7 +37,8 @@ class TestRegion:
 
     def test_a_region_is_automatically_created_when_accessed(self, default_config):
         region = Region(
-            "screen", default_config, boundary=Rect(left=0, top=10, width=32, height=8))
+            "screen", default_config, boundary=Rect(left=0, top=10, width=32, height=8)
+        )
 
         assert_that(region.test.name, is_("test"))
 
@@ -44,5 +46,5 @@ class TestRegion:
         region = Region("area", Config())
         this_dir = Path(__file__).parent
 
-        assert_that(region._config.image_dir, is_(this_dir / "images"))
-        assert_that(region._config.screenshot_dir, is_(this_dir / "screenshots"))
+        assert_that(region._config.image_dir, is_(str(this_dir / "images")))
+        assert_that(region._config.screenshot_dir, is_(str(this_dir / "screenshots")))

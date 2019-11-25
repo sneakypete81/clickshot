@@ -2,6 +2,7 @@
 /*.egg-info/
 /pip-wheel-metadata/
 /.coverage
+/.mypy_cache/
 /.pytest_cache/
 /.python-version
 /.tox/

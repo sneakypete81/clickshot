@@ -1,31 +1,37 @@
 from pathlib import Path
 import time
-from typing import NamedTuple
+from typing import NamedTuple, Optional, Tuple, TYPE_CHECKING
 import warnings
 
 from .exceptions import ElementNotFoundError
 from .locater import Locater
 from .mouse import Mouse, Button
+from .types import Rect
+
+if TYPE_CHECKING:
+    from .region import Region
 
 
 class ElementConfig(NamedTuple):
     name: str
-    click_offset: tuple = None
+    click_offset: Optional[Tuple[int, int]] = None
 
 
 class Element:
-    def __init__(self, element, region):
+    def __init__(self, element_config: ElementConfig, region: "Region") -> None:
         self.boundary = region._boundary
         self.config = region._config
 
-        self.name = element.name
-        self.full_name = f"{region._name}-{element.name}"
+        self.name = element_config.name
+        self.full_name = f"{region._name}-{element_config.name}"
         self.image_path = (Path(self.config.image_dir) / self.full_name).with_suffix(
             ".png"
         )
-        self.click_offset = element.click_offset
-        if self.click_offset is None:
+
+        if element_config.click_offset is None:
             self.click_offset = (0, 0)
+        else:
+            self.click_offset = element_config.click_offset
 
         self._locater = Locater()
         self._mouse = Mouse()
@@ -33,7 +39,7 @@ class Element:
     def __str__(self):
         return f"<Element name='{self.name}'>"
 
-    def click(self, timeout_seconds=None):
+    def click(self, timeout_seconds: Optional[int] = None) -> None:
         if timeout_seconds is None:
             timeout_seconds = self.config.click_retry_seconds
 
@@ -47,18 +53,18 @@ class Element:
         time.sleep(0.01)
         self._mouse.click(Button.left)
 
-    def is_visible(self, timeout_seconds=0):
+    def is_visible(self, timeout_seconds: int = 0) -> bool:
         try:
             self._locate_centre_with_retry(timeout_seconds)
             return True
         except ElementNotFoundError:
             return False
 
-    def _locate_centre_with_retry(self, timeout_seconds):
+    def _locate_centre_with_retry(self, timeout_seconds: int) -> Tuple[int, int]:
         rect = self._locate_with_retry(timeout_seconds)
         return self._find_centre(rect)
 
-    def _locate_with_retry(self, timeout_seconds):
+    def _locate_with_retry(self, timeout_seconds: int) -> Rect:
         # Ensure the mouse isn't in the abort position
         if self._mouse.position == (0, 0):
             self._mouse.position = (10, 10)
@@ -77,7 +83,7 @@ class Element:
                     warnings.warn("Aborted - mouse pointer moved to (0, 0)")
                     raise
 
-    def save_last_screenshot(self):
+    def save_last_screenshot(self) -> None:
         screenshot = self._locater.last_screenshot
         if screenshot is None:
             return
@@ -92,5 +98,5 @@ class Element:
         print(f"Screenshot: {unique_screenshot_path}")
 
     @staticmethod
-    def _find_centre(rect):
+    def _find_centre(rect: Rect) -> Tuple[int, int]:
         return (rect.left + rect.width // 2, rect.top + rect.height // 2)

@@ -59,8 +59,10 @@ class TestGrab:
     def test_resizes_from_hidpi_monitor(self, mocker, pixels, rgb_array):
         mss = mocker.patch("clickshot.screen_grabber.mss")
         mss().grab.return_value = pixels
+
+        resized_image_data = numpy.array([[24]])
         resize = mocker.patch("clickshot.screen_grabber.cv2.resize")
-        resize.return_value = mocker.sentinel.resized_image
+        resize.return_value = resized_image_data
 
         # Ask for a smaller region than is returned by mss().grab.
         # This indicates a HiDPI monitor, which should then be resized back to the
@@ -68,6 +70,6 @@ class TestGrab:
         grabber = ScreenGrabber()
         image = grabber.grab(Rect(left=0, top=0, width=2, height=1))
 
-        assert_that(image.data, is_(mocker.sentinel.resized_image))
+        numpy.testing.assert_array_equal(image.data, resized_image_data)
         numpy.testing.assert_array_equal(resize.call_args[0][0], rgb_array)
         assert_that(resize.call_args[0][1], is_((2, 1)))

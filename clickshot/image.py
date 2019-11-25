@@ -1,25 +1,24 @@
 from pathlib import Path
+from typing import Union
+
 import cv2
+import numpy
 
 from .exceptions import ElementNotFoundError
 from .types import Rect
 
 
 class Image:
-    def __init__(self, data=None):
+    def __init__(self, data: numpy.array) -> None:
         self.data = data
-        try:
-            self.height = data.shape[0]
-            self.width = data.shape[1]
-        except AttributeError:
-            self.height = None
-            self.width = None
+        self.height = data.shape[0]
+        self.width = data.shape[1]
 
     @classmethod
-    def load(cls, path):
+    def load(cls, path: Union[Path, str]) -> "Image":
         return cls(cv2.imread(str(path)))
 
-    def save(self, path):
+    def save(self, path: Union[Path, str]) -> Path:
         path = Path(path)
         path.parent.mkdir(exist_ok=True)
 
@@ -28,21 +27,18 @@ class Image:
 
         return unique_path
 
-    def match_template(self, template, threshold=0.001):
+    def match_template(self, template: "Image", threshold: float = 0.001) -> Rect:
         result = cv2.matchTemplate(self.data, template.data, cv2.TM_SQDIFF_NORMED)
         minVal, _, minLoc, _ = cv2.minMaxLoc(result)
 
         if minVal > threshold:
             raise ElementNotFoundError
         return Rect(
-            left=minLoc[0],
-            top=minLoc[1],
-            width=template.width,
-            height=template.height,
+            left=minLoc[0], top=minLoc[1], width=template.width, height=template.height,
         )
 
     @staticmethod
-    def _find_unique_path(path):
+    def _find_unique_path(path: Path) -> Path:
         if not path.exists():
             return path
 

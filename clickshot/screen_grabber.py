@@ -1,15 +1,18 @@
+from typing import Optional
+
 import cv2
 from mss import mss
 import numpy
 
 from .image import Image
+from .types import Rect
 
 
 class ScreenGrabber:
-    def __init__(self):
+    def __init__(self) -> None:
         self._mss = mss()
 
-    def grab(self, rect=None):
+    def grab(self, rect: Optional[Rect] = None) -> Image:
         if rect is None:
             monitor = self._mss.monitors[0]
         else:

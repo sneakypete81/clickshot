@@ -34,7 +34,8 @@ class TestLocate:
 
         assert_that(
             calling(Locater().locate).with_args(
-                "image", Rect(left=1, top=2, width=3, height=4)),
+                "image", Rect(left=1, top=2, width=3, height=4)
+            ),
             raises(ElementNotFoundError),
         )
 
@@ -45,7 +46,8 @@ class TestLocate:
 
         assert_that(
             calling(Locater().locate).with_args(
-                "image", Rect(left=1, top=2, width=3, height=4)),
+                "image", Rect(left=1, top=2, width=3, height=4)
+            ),
             raises(FileNotFoundError),
         )
 
