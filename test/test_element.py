@@ -37,7 +37,7 @@ class TestClick:
         element.click()
 
         assert_that(Mouse().position, is_((5, 25)))
-        Mouse().click.assert_called_with(Button.left)
+        Mouse().click.assert_called_with(button=Button.left, count=1)
         Locater().locate.assert_called_with(
             Path("images/my_region-my_element.png"), region._boundary,
         )
@@ -66,7 +66,7 @@ class TestClick:
         element.click()
 
         assert_that(Mouse().position, is_((5, 25)))
-        Mouse().click.assert_called_with(Button.left)
+        Mouse().click.assert_called_with(button=Button.left, count=1)
         Locater().locate.assert_called_with(
             Path("images/my_region-my_element.png"), region._boundary
         )
@@ -193,7 +193,20 @@ class TestClick:
         element.click()
 
         assert_that(Mouse().position, is_((7, 28)))
-        Mouse().click.assert_called_with(Button.left)
+        Mouse().click.assert_called_with(button=Button.left, count=1)
+
+    def test_click_parameters_are_applied(self, mocker, region):
+        Mouse = mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        Locater().locate.return_value = Rect(left=0, top=15, width=10, height=20)
+
+        element = Element(
+            ElementConfig(name="my_element", click_offset=(2, 3)), region,
+        )
+        element.click(button=Button.right, count=2)
+
+        assert_that(Mouse().position, is_((7, 28)))
+        Mouse().click.assert_called_with(button=Button.right, count=2)
 
     def test_failsafe_aborts_click_attempt(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")

@@ -39,7 +39,12 @@ class Element:
     def __str__(self) -> str:
         return f"<Element name='{self.name}'>"
 
-    def click(self, timeout_seconds: Optional[int] = None) -> None:
+    def click(
+        self,
+        button: Button = Button.left,
+        count: int = 1,
+        timeout_seconds: Optional[int] = None,
+    ) -> None:
         if timeout_seconds is None:
             timeout_seconds = self.config.click_retry_seconds
 
@@ -51,7 +56,7 @@ class Element:
 
         self._mouse.position = (x + self.click_offset[0], y + self.click_offset[1])
         time.sleep(0.01)
-        self._mouse.click(Button.left)
+        self._mouse.click(button=button, count=count)
 
     def is_visible(self, timeout_seconds: int = 0) -> bool:
         try:
