@@ -36,7 +36,7 @@ class Element:
         self._locater = Locater()
         self._mouse = Mouse()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<Element name='{self.name}'>"
 
     def click(self, timeout_seconds: Optional[int] = None) -> None:
