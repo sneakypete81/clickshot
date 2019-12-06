@@ -28,7 +28,7 @@ flake8 = "^3.7"
 PyHamcrest = "^1.9"
 pytest = "^5.3"
 pytest-cov = "^2.8"
-pytest-mock = "^1.12"
+pytest-mock = "^1.13"
 tox = "^3.14"
 mypy = "^0.740.0"
 
