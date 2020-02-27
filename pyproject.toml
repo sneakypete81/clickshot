@@ -25,7 +25,7 @@ pynput = "^1.4"
 [tool.poetry.dev-dependencies]
 black = {version = "^19.10b0",allows-prereleases = true}
 flake8 = "^3.7"
-PyHamcrest = "^1.10"
+PyHamcrest = "^2.0"
 pytest = "^5.3"
 pytest-cov = "^2.8"
 pytest-mock = "^1.13"
