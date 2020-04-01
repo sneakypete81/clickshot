@@ -356,17 +356,17 @@ testing = ["fields", "hunter", "process-tests (2.0.2)", "six", "virtualenv"]
 
 [[package]]
 category = "dev"
-description = "Thin-wrapper around the mock package for easier use with py.test"
+description = "Thin-wrapper around the mock package for easier use with pytest"
 name = "pytest-mock"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "1.13.0"
+python-versions = ">=3.5"
+version = "3.0.0"
 
 [package.dependencies]
 pytest = ">=2.7"
 
 [package.extras]
-dev = ["pre-commit", "tox"]
+dev = ["pre-commit", "tox", "pytest-asyncio"]
 
 [[package]]
 category = "main"
@@ -483,7 +483,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "contextlib2", "unittest2"]
 
 [metadata]
-content-hash = "198417d742df4235eed8f72a85295ec7c92f0df70d06840c04df617edfc56f5b"
+content-hash = "f33d4b17099fc5ec3d5777ca1d7f3ba3c3a2c3ff91e5bb1b9d3764626eeceea7"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -707,8 +707,8 @@ pytest-cov = [
     {file = "pytest_cov-2.8.1-py2.py3-none-any.whl", hash = "sha256:cdbdef4f870408ebdbfeb44e63e07eb18bb4619fae852f6e760645fa36172626"},
 ]
 pytest-mock = [
-    {file = "pytest-mock-1.13.0.tar.gz", hash = "sha256:e24a911ec96773022ebcc7030059b57cd3480b56d4f5d19b7c370ec635e6aed5"},
-    {file = "pytest_mock-1.13.0-py2.py3-none-any.whl", hash = "sha256:67e414b3caef7bff6fc6bd83b22b5bc39147e4493f483c2679bc9d4dc485a94d"},
+    {file = "pytest-mock-3.0.0.tar.gz", hash = "sha256:a4494016753a30231f8519bfd160242a0f3c8fb82ca36e7b6f82a7fb602ac6b8"},
+    {file = "pytest_mock-3.0.0-py2.py3-none-any.whl", hash = "sha256:98e02534f170e4f37d7e1abdfc5973fd4207aa609582291717f643764e71c925"},
 ]
 python-xlib = [
     {file = "python-xlib-0.25.tar.bz2", hash = "sha256:204f280b549352af6cbdaff43405186822ae05749518dd9be209bd88a0088f99"},
