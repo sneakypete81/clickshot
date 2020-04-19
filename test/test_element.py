@@ -1,6 +1,6 @@
 import pytest
 from unittest import mock
-from hamcrest import assert_that, is_, has_item, contains_string, calling, raises
+from hamcrest import assert_that, is_, has_item, contains_string
 from pathlib import Path
 
 from clickshot import Button, Config, ElementConfig, ElementNotFoundError, Rect, Region
@@ -47,7 +47,8 @@ class TestClick:
         element = Element(ElementConfig(name="my_element"), region)
         element.save_last_screenshot = mock.Mock()
 
-        assert_that(calling(element.click), raises(ElementNotFoundError))
+        with pytest.raises(ElementNotFoundError):
+            element.click()
 
     def test_default_timeout_is_30(self, mocker, region):
         mocker.patch("clickshot.element.Mouse")
@@ -244,7 +245,8 @@ class TestWaitUntilVisible:
         element = Element(ElementConfig(name="my_element"), region)
         element.save_last_screenshot = mocker.Mock()
 
-        assert_that(calling(element.wait_until_visible), raises(ElementNotFoundError))
+        with pytest.raises(ElementNotFoundError):
+            element.wait_until_visible()
 
     def test_screenshot_saved_if_element_not_found(self, mocker, region):
         mocker.patch("clickshot.element.Mouse")
