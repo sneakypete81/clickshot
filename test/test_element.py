@@ -12,7 +12,7 @@ def config():
     config = mock.create_autospec(Config, spec_set=True, instance=True)
     config.image_dir = "images/"
     config.screenshot_dir = "screenshots/"
-    config.click_retry_seconds = 30
+    config.timeout_seconds = 30
     return config
 
 

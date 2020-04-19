@@ -47,7 +47,7 @@ class Element:
         timeout_seconds: Optional[int] = None,
     ) -> None:
         if timeout_seconds is None:
-            timeout_seconds = self.config.click_retry_seconds
+            timeout_seconds = self.config.timeout_seconds
 
         try:
             x, y = self._locate_centre_with_retry(timeout_seconds)
