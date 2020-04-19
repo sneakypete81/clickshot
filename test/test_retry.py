@@ -1,4 +1,5 @@
-from hamcrest import assert_that, is_, calling, raises
+from hamcrest import assert_that, is_
+import pytest
 
 from clickshot.retry import retry_with_timeout, RetryAbort
 
@@ -33,9 +34,8 @@ class TestRetry:
         time.monotonic.side_effect = [s[0] for s in method_timing]
         method = mocker.Mock(side_effect=[s[1] for s in method_timing])
 
-        assert_that(
-            calling(retry_with_timeout).with_args(method, 30), raises(NormalTestError)
-        )
+        with pytest.raises(NormalTestError):
+            retry_with_timeout(method, 30)
 
     def test_returns_if_no_exception_just_before_timeout(self, mocker):
         time = mocker.patch("clickshot.retry.time")
@@ -69,6 +69,5 @@ class TestRetry:
         time.monotonic.side_effect = [s[0] for s in method_timing]
         method = mocker.Mock(side_effect=[s[1] for s in method_timing])
 
-        assert_that(
-            calling(retry_with_timeout).with_args(method, 30), raises(AbortedTestError)
-        )
+        with pytest.raises(AbortedTestError):
+            retry_with_timeout(method, 30)

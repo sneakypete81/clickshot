@@ -1,4 +1,4 @@
-from hamcrest import assert_that, is_, calling, raises
+from hamcrest import assert_that, is_
 import pytest
 
 from clickshot import ElementNotFoundError, Rect
@@ -32,24 +32,16 @@ class TestLocate:
         ScreenGrabber = mocker.patch("clickshot.locater.ScreenGrabber")
         ScreenGrabber().grab.return_value = screenshot
 
-        assert_that(
-            calling(Locater().locate).with_args(
-                "image", Rect(left=1, top=2, width=3, height=4)
-            ),
-            raises(ElementNotFoundError),
-        )
+        with pytest.raises(ElementNotFoundError):
+            Locater().locate("image", Rect(left=1, top=2, width=3, height=4))
 
     def test_raises_error_if_image_file_doesnt_exist(self, mocker):
         mocker.patch("clickshot.locater.ScreenGrabber")
         Image = mocker.patch("clickshot.locater.Image")
         Image.load.side_effect = FileNotFoundError
 
-        assert_that(
-            calling(Locater().locate).with_args(
-                "image", Rect(left=1, top=2, width=3, height=4)
-            ),
-            raises(FileNotFoundError),
-        )
+        with pytest.raises(FileNotFoundError):
+            Locater().locate("image", Rect(left=1, top=2, width=3, height=4))
 
 
 class TestLastScreenshot:
