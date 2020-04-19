@@ -166,85 +166,33 @@ class TestIsVisible:
             Path("images/my_region-my_element.png"), region._boundary
         )
 
-    def test_returns_true_if_found_just_before_timeout(self, mocker, region):
+    def test_returns_false_if_element_not_found(self, mocker, region):
         mocker.patch("clickshot.element.Mouse")
-        Locater = mocker.patch("clickshot.element.Locater")
-        time = mocker.patch("clickshot.retry.time")
-
-        locate_timing = [
-            (0, ElementNotFoundError()),
-            (11, ElementNotFoundError()),
-            (21, ElementNotFoundError()),
-            (29, Rect(left=0, top=15, width=10, height=20)),
-            (31, Rect(left=0, top=15, width=10, height=20)),
-            (41, Rect(left=0, top=15, width=10, height=20)),
-            (51, Rect(left=0, top=15, width=10, height=20)),
-        ]
-
-        time.monotonic.side_effect = [s[0] for s in locate_timing]
-        Locater().locate.side_effect = [s[1] for s in locate_timing]
-
-        element = Element(ElementConfig(name="my_element"), region)
-
-        result = element.is_visible(timeout_seconds=30)
-
-        assert_that(result, is_(True))
-        Locater().locate.assert_called_with(
-            Path("images/my_region-my_element.png"), region._boundary,
-        )
-        assert_that(next(time.monotonic.side_effect), is_(31))
-
-    def test_returns_false_if_element_not_found_after_timeout(self, mocker, region):
-        mocker.patch("clickshot.element.Mouse")
-        Locater = mocker.patch("clickshot.element.Locater")
-        time = mocker.patch("clickshot.retry.time")
-
-        locate_timing = [
-            (0, ElementNotFoundError()),
-            (11, ElementNotFoundError()),
-            (21, ElementNotFoundError()),
-            (29, ElementNotFoundError()),
-            (31, ElementNotFoundError()),
-            (41, ElementNotFoundError()),
-            (51, ElementNotFoundError()),
-        ]
-
-        time.monotonic.side_effect = [s[0] for s in locate_timing]
-        Locater().locate.side_effect = [s[1] for s in locate_timing]
-
-        element = Element(ElementConfig(name="my_element"), region)
-
-        result = element.is_visible(timeout_seconds=30)
-
-        assert_that(result, is_(False))
-        assert_that(next(time.monotonic.side_effect), is_(41))
-
-    def test_returns_false_if_element_not_found_with_no_timeout_by_default(
-        self, mocker, region
-    ):
-        mocker.patch("clickshot.element.Mouse")
-        Locater = mocker.patch("clickshot.element.Locater")
-        time = mocker.patch("clickshot.retry.time")
-
-        locate_timing = [
-            (0, ElementNotFoundError()),
-            (11, ElementNotFoundError()),
-            (21, ElementNotFoundError()),
-            (29, ElementNotFoundError()),
-            (31, ElementNotFoundError()),
-            (41, ElementNotFoundError()),
-            (51, ElementNotFoundError()),
-        ]
-
-        time.monotonic.side_effect = [s[0] for s in locate_timing]
-        Locater().locate.side_effect = [s[1] for s in locate_timing]
-
+        retry_with_timeout = mocker.patch("clickshot.element.retry_with_timeout")
+        retry_with_timeout.side_effect = ElementNotFoundError()
         element = Element(ElementConfig(name="my_element"), region)
 
         result = element.is_visible()
 
         assert_that(result, is_(False))
-        assert_that(next(time.monotonic.side_effect), is_(21))
+
+    def test_default_timeout_is_0(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        retry_with_timeout = mocker.patch("clickshot.element.retry_with_timeout")
+        element = Element(ElementConfig(name="my_element"), region)
+
+        element.is_visible()
+
+        retry_with_timeout.assert_called_with(mocker.ANY, 0)
+
+    def test_custom_timeout_can_be_set(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        retry_with_timeout = mocker.patch("clickshot.element.retry_with_timeout")
+        element = Element(ElementConfig(name="my_element"), region)
+
+        element.is_visible(timeout_seconds=15)
+
+        retry_with_timeout.assert_called_with(mocker.ANY, 15)
 
     def test_failsafe_aborts_is_visible_attempt(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")
