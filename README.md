@@ -31,6 +31,7 @@ Then you can use the following:
   poetry run pytest  # Run all unit tests
   poetry run flake8  # Run the linter
   poetry run black . # Run the code autoformatter
+  poetry run mypy .  # Run the static type checker
   poetry run tox     # Run all checks across all supported Python versions
   poetry shell       # Open a venv shell with your local clone installed
 ```
