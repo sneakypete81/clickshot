@@ -16,6 +16,7 @@ class Image:
 
     @classmethod
     def load(cls, path: Union[Path, str]) -> "Image":
+        Path(path).resolve(strict=True)
         return cls(cv2.imread(str(path)))
 
     def save(self, path: Union[Path, str]) -> Path:

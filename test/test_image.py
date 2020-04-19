@@ -13,6 +13,14 @@ def empty_image():
     return Image(EmptyImageData())
 
 
+class TestLoad:
+    def test_checks_if_image_exists(self, mocker, empty_image):
+        mocker.patch("clickshot.image.Path.exists").return_value = False
+
+        with pytest.raises(FileNotFoundError):
+            Image.load("invalid/path.png")
+
+
 class TestSave:
     def test_image_dir_is_created_if_necessary(self, mocker, empty_image):
         mocker.patch("clickshot.image.cv2")
