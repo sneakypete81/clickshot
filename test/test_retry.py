@@ -71,3 +71,24 @@ class TestRetry:
 
         with pytest.raises(AbortedTestError):
             retry_with_timeout(method, 30)
+
+    def test_emits_single_warning_if_file_not_found(self, mocker):
+        time = mocker.patch("clickshot.retry.time")
+        method_timing = [
+            (0, FileNotFoundError("error message")),
+            (11, FileNotFoundError("error message")),
+            (21, FileNotFoundError("error message")),
+            (29, FileNotFoundError("error message")),
+            (31, FileNotFoundError("error message")),
+            (41, FileNotFoundError("error message")),
+            (51, FileNotFoundError("error message")),
+        ]
+        time.monotonic.side_effect = [s[0] for s in method_timing]
+        method = mocker.Mock(side_effect=[s[1] for s in method_timing])
+
+        with pytest.raises(FileNotFoundError):
+            with pytest.warns(UserWarning) as record:
+                retry_with_timeout(method, 30)
+
+        warning_messages = [r.message.args[0] for r in record]
+        assert_that(warning_messages, is_(["error message"]))
