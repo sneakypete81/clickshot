@@ -37,6 +37,16 @@ class TestRetry:
         with pytest.raises(NormalTestError):
             retry_with_timeout(method, 30)
 
+    def test_raises_immediately_if_exception_and_no_timeout_set(self, mocker):
+        time = mocker.patch("clickshot.retry.time")
+        time.monotonic.return_value = 1000
+        method = mocker.Mock(side_effect=NormalTestError)
+
+        with pytest.raises(NormalTestError):
+            retry_with_timeout(method, 0)
+
+        method.assert_called_once()
+
     def test_returns_if_no_exception_just_before_timeout(self, mocker):
         time = mocker.patch("clickshot.retry.time")
         method_timing = [

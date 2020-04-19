@@ -14,7 +14,7 @@ def retry_with_timeout(method: Callable, timeout_seconds: int) -> Any:
             raise e.exception
 
         except Exception as e:
-            if time.monotonic() - start_time > timeout_seconds:
+            if time.monotonic() - start_time >= timeout_seconds:
                 raise
 
             if not emitted_warning and isinstance(e, FileNotFoundError):
