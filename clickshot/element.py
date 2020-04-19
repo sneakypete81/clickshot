@@ -66,6 +66,16 @@ class Element:
         except ElementNotFoundError:
             return False
 
+    def wait_until_visible(self, timeout_seconds: Optional[int] = None,) -> None:
+        if timeout_seconds is None:
+            timeout_seconds = self.config.timeout_seconds
+
+        try:
+            self._locate_centre_with_retry(timeout_seconds)
+        except Exception:
+            self.save_last_screenshot()
+            raise
+
     def _locate_centre_with_retry(self, timeout_seconds: int) -> Tuple[int, int]:
         # Ensure the mouse isn't in the abort position
         if self._mouse.position == (0, 0):

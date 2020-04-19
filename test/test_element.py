@@ -224,6 +224,71 @@ class TestIsVisible:
         assert_that(position_mock.mock_calls, has_item(mock.call((10, 10))))
 
 
+class TestWaitUntilVisible:
+    def test_returns_if_element_found(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        Locater = mocker.patch("clickshot.element.Locater")
+        Locater().locate.return_value = Rect(left=0, top=15, width=10, height=20)
+        element = Element(ElementConfig(name="my_element"), region)
+
+        element.wait_until_visible()
+
+        Locater().locate.assert_called_with(
+            Path("images/my_region-my_element.png"), region._boundary
+        )
+
+    def test_exception_raised_if_element_not_found(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        retry_with_timeout = mocker.patch("clickshot.element.retry_with_timeout")
+        retry_with_timeout.side_effect = ElementNotFoundError()
+        element = Element(ElementConfig(name="my_element"), region)
+        element.save_last_screenshot = mocker.Mock()
+
+        assert_that(calling(element.wait_until_visible), raises(ElementNotFoundError))
+
+    def test_screenshot_saved_if_element_not_found(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        retry_with_timeout = mocker.patch("clickshot.element.retry_with_timeout")
+        retry_with_timeout.side_effect = ElementNotFoundError()
+        element = Element(ElementConfig(name="my_element"), region)
+        element.save_last_screenshot = mocker.Mock()
+
+        with pytest.raises(ElementNotFoundError):
+            element.wait_until_visible()
+
+        element.save_last_screenshot.assert_called()
+
+    def test_screenshot_saved_if_image_file_not_found(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        retry_with_timeout = mocker.patch("clickshot.element.retry_with_timeout")
+        retry_with_timeout.side_effect = FileNotFoundError()
+        element = Element(ElementConfig(name="my_element"), region)
+        element.save_last_screenshot = mocker.Mock()
+
+        with pytest.raises(FileNotFoundError):
+            element.wait_until_visible()
+
+        element.save_last_screenshot.assert_called()
+
+    def test_default_timeout_is_30(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        retry_with_timeout = mocker.patch("clickshot.element.retry_with_timeout")
+        element = Element(ElementConfig(name="my_element"), region)
+
+        element.wait_until_visible()
+
+        retry_with_timeout.assert_called_with(mocker.ANY, 30)
+
+    def test_custom_timeout_can_be_set(self, mocker, region):
+        mocker.patch("clickshot.element.Mouse")
+        retry_with_timeout = mocker.patch("clickshot.element.retry_with_timeout")
+        element = Element(ElementConfig(name="my_element"), region)
+
+        element.wait_until_visible(timeout_seconds=15)
+
+        retry_with_timeout.assert_called_with(mocker.ANY, 15)
+
+
 class TestSaveLastScreenshot:
     def test_screenshot_saved(self, mocker, region, capsys):
         screenshot = mock.Mock()
