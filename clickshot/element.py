@@ -6,6 +6,7 @@ import warnings
 from .exceptions import ElementNotFoundError
 from .locater import Locater
 from .mouse import Mouse, Button
+from .retry import retry_with_timeout, RetryAbort
 from .types import Rect
 
 if TYPE_CHECKING:
@@ -66,27 +67,23 @@ class Element:
             return False
 
     def _locate_centre_with_retry(self, timeout_seconds: int) -> Tuple[int, int]:
-        rect = self._locate_with_retry(timeout_seconds)
-        return self._find_centre(rect)
-
-    def _locate_with_retry(self, timeout_seconds: int) -> Rect:
         # Ensure the mouse isn't in the abort position
         if self._mouse.position == (0, 0):
             self._mouse.position = (10, 10)
 
-        start_time = time.monotonic()
-        while True:
-            try:
-                return self._locater.locate(self.image_path, self.boundary)
-            except (ElementNotFoundError, FileNotFoundError):
-                elapsed_time = time.monotonic() - start_time
-                if elapsed_time > timeout_seconds:
-                    raise
+        rect = retry_with_timeout(self._locate, timeout_seconds)
+        return self._find_centre(rect)
 
-                # Abort if mouse pointer gets moved to (0, 0)
-                if self._mouse.position == (0, 0):
-                    warnings.warn("Aborted - mouse pointer moved to (0, 0)")
-                    raise
+    def _locate(self) -> Rect:
+        try:
+            return self._locater.locate(self.image_path, self.boundary)
+        except Exception as e:
+            # Abort if mouse pointer gets moved to (0, 0)
+            if self._mouse.position == (0, 0):
+                warnings.warn("Aborted - mouse pointer moved to (0, 0)")
+                raise RetryAbort(e)
+            else:
+                raise e
 
     def save_last_screenshot(self) -> None:
         screenshot = self._locater.last_screenshot
