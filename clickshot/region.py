@@ -1,5 +1,6 @@
 import inspect
 from pathlib import Path
+import platform
 from typing import Dict, List, Optional
 
 from .config import Config
@@ -16,11 +17,11 @@ class Region:
 
         if self._config.image_dir == "":
             self._config = self._config._replace(
-                image_dir=str(_get_calling_dir() / "images")
+                image_dir=_get_image_dir(inspect.stack())
             )
         if self._config.screenshot_dir == "":
             self._config = self._config._replace(
-                screenshot_dir=str(_get_calling_dir() / "screenshots")
+                screenshot_dir=_get_screenshot_dir(inspect.stack())
             )
 
     def configure(self, element_configs: List[ElementConfig]) -> "Region":
@@ -33,5 +34,28 @@ class Region:
         return self._elements[name]
 
 
-def _get_calling_dir() -> Path:
-    return Path(inspect.stack()[2].filename).parent
+def _get_image_dir(stack: List[inspect.FrameInfo]) -> str:
+    image_dir = _get_calling_dir(stack) / "images"
+
+    if platform.system().lower() == "darwin":
+        mac_release_dir = image_dir / f"{platform.system()}-{platform.mac_ver()[0]}"
+        if mac_release_dir.exists():
+            return str(mac_release_dir)
+
+    release_dir = image_dir / f"{platform.system()}-{platform.release()}"
+    if release_dir.exists():
+        return str(release_dir)
+
+    system_dir = image_dir / platform.system()
+    if system_dir.exists():
+        return str(system_dir)
+
+    return str(image_dir)
+
+
+def _get_screenshot_dir(stack: List[inspect.FrameInfo]) -> str:
+    return str(_get_calling_dir(stack) / "screenshots")
+
+
+def _get_calling_dir(stack: List[inspect.FrameInfo]) -> Path:
+    return Path(stack[1].filename).parent

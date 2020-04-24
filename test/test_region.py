@@ -10,6 +10,11 @@ def default_config():
     return Config("img", "scr")
 
 
+def mock_stack(mocker, path):
+    stack_item = mocker.Mock(filename=str(path / "somefile.py"))
+    return ["", stack_item]
+
+
 class TestRegion:
     def test_a_region_can_be_created_with_one_element(self, default_config):
         element = ElementConfig("test")
@@ -48,3 +53,46 @@ class TestRegion:
 
         assert_that(region._config.image_dir, is_(str(this_dir / "images")))
         assert_that(region._config.screenshot_dir, is_(str(this_dir / "screenshots")))
+
+    def test_system_image_dir_is_used(self, mocker, tmp_path):
+        (tmp_path / "images" / "Darwin").mkdir(parents=True)
+        mocker.patch("clickshot.region.platform.system").return_value = "Darwin"
+        mocker.patch("clickshot.region.inspect.stack").return_value = mock_stack(
+            mocker, tmp_path
+        )
+
+        region = Region("area", Config())
+
+        assert_that(region._config.image_dir, is_(str(tmp_path / "images" / "Darwin")))
+
+    def test_release_image_dir_is_preferred(self, mocker, tmp_path):
+        (tmp_path / "images" / "Darwin").mkdir(parents=True)
+        (tmp_path / "images" / "Darwin-19.4.0").mkdir(parents=True)
+        mocker.patch("clickshot.region.platform.system").return_value = "Darwin"
+        mocker.patch("clickshot.region.platform.release").return_value = "19.4.0"
+        mocker.patch("clickshot.region.inspect.stack").return_value = mock_stack(
+            mocker, tmp_path
+        )
+
+        region = Region("area", Config())
+
+        assert_that(
+            region._config.image_dir, is_(str(tmp_path / "images" / "Darwin-19.4.0"))
+        )
+
+    def test_mac_ver_image_dir_is_preferred(self, mocker, tmp_path):
+        (tmp_path / "images" / "Darwin").mkdir(parents=True)
+        (tmp_path / "images" / "Darwin-19.4.0").mkdir(parents=True)
+        (tmp_path / "images" / "Darwin-10.15.4").mkdir(parents=True)
+        mocker.patch("clickshot.region.platform.system").return_value = "Darwin"
+        mocker.patch("clickshot.region.platform.release").return_value = "19.4.0"
+        mocker.patch("clickshot.region.platform.mac_ver").return_value = ("10.15.4",)
+        mocker.patch("clickshot.region.inspect.stack").return_value = mock_stack(
+            mocker, tmp_path
+        )
+
+        region = Region("area", Config())
+
+        assert_that(
+            region._config.image_dir, is_(str(tmp_path / "images" / "Darwin-10.15.4"))
+        )
