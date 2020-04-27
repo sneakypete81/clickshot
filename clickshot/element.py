@@ -49,6 +49,8 @@ class Element:
         if timeout_seconds is None:
             timeout_seconds = self.config.timeout_seconds
 
+        print(f"Clicking {self.full_name}: ", end="", flush=True)
+
         try:
             x, y = self._locate_centre_with_retry(timeout_seconds)
         except Exception:
@@ -58,6 +60,7 @@ class Element:
         self._mouse.position = (x + self.click_offset[0], y + self.click_offset[1])
         time.sleep(0.01)
         self._mouse.click(button=button, count=count)
+        print("Done")
 
     def is_visible(self, timeout_seconds: int = 0) -> bool:
         try:
@@ -70,18 +73,22 @@ class Element:
         if timeout_seconds is None:
             timeout_seconds = self.config.timeout_seconds
 
+        print(f"Waiting for {self.full_name}: ", end="", flush=True)
+
         try:
             self._locate_centre_with_retry(timeout_seconds)
         except Exception:
             self.save_last_screenshot()
             raise
 
+        print("Done")
+
     def _locate_centre_with_retry(self, timeout_seconds: int) -> Tuple[int, int]:
         # Ensure the mouse isn't in the abort position
         if self._mouse.position == (0, 0):
             self._mouse.position = (10, 10)
 
-        rect = retry_with_timeout(self._locate, timeout_seconds)
+        rect = retry_with_timeout(self._locate, timeout_seconds, log=True)
         return self._find_centre(rect)
 
     def _locate(self) -> Rect:

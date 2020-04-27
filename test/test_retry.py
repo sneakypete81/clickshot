@@ -102,3 +102,41 @@ class TestRetry:
 
         warning_messages = [r.message.args[0] for r in record]
         assert_that(warning_messages, is_(["error message"]))
+
+    def test_logs_progress_if_logging_enabled(self, mocker, capsys):
+        time = mocker.patch("clickshot.retry.time")
+        method_timing = [
+            (0, NormalTestError),
+            (4, 40),
+            (21, 41),
+            (29, 42),
+            (31, 43),
+            (41, 44),
+            (51, 45),
+        ]
+        time.monotonic.side_effect = [0] + [s[0] for s in method_timing]
+        method = mocker.Mock(side_effect=[s[1] for s in method_timing])
+
+        retry_with_timeout(method, 30, log=True)
+
+        assert_that(
+            capsys.readouterr().out, is_("0...\b\b\b\b1...\b\b\b\b2...\b\b\b\b3...")
+        )
+
+    def test_does_not_log_progress_by_default(self, mocker, capsys):
+        time = mocker.patch("clickshot.retry.time")
+        method_timing = [
+            (0, NormalTestError),
+            (4, 40),
+            (21, 41),
+            (29, 42),
+            (31, 43),
+            (41, 44),
+            (51, 45),
+        ]
+        time.monotonic.side_effect = [0] + [s[0] for s in method_timing]
+        method = mocker.Mock(side_effect=[s[1] for s in method_timing])
+
+        retry_with_timeout(method, 30)
+
+        assert_that(capsys.readouterr().out, is_(""))

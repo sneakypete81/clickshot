@@ -59,7 +59,7 @@ class TestClick:
 
         element.click()
 
-        retry_with_timeout.assert_called_with(mocker.ANY, 30)
+        retry_with_timeout.assert_called_with(mocker.ANY, 30, log=mocker.ANY)
 
     def test_custom_timeout_can_be_set(self, mocker, region):
         mocker.patch("clickshot.element.Mouse")
@@ -70,7 +70,7 @@ class TestClick:
 
         element.click(timeout_seconds=50)
 
-        retry_with_timeout.assert_called_with(mocker.ANY, 50)
+        retry_with_timeout.assert_called_with(mocker.ANY, 50, log=mocker.ANY)
 
     def test_screenshot_saved_if_element_not_found(self, mocker, region):
         mocker.patch("clickshot.element.Mouse")
@@ -184,7 +184,7 @@ class TestIsVisible:
 
         element.is_visible()
 
-        retry_with_timeout.assert_called_with(mocker.ANY, 0)
+        retry_with_timeout.assert_called_with(mocker.ANY, 0, log=mocker.ANY)
 
     def test_custom_timeout_can_be_set(self, mocker, region):
         mocker.patch("clickshot.element.Mouse")
@@ -193,7 +193,7 @@ class TestIsVisible:
 
         element.is_visible(timeout_seconds=15)
 
-        retry_with_timeout.assert_called_with(mocker.ANY, 15)
+        retry_with_timeout.assert_called_with(mocker.ANY, 15, log=mocker.ANY)
 
     def test_failsafe_aborts_is_visible_attempt(self, mocker, region):
         Mouse = mocker.patch("clickshot.element.Mouse")
@@ -279,7 +279,7 @@ class TestWaitUntilVisible:
 
         element.wait_until_visible()
 
-        retry_with_timeout.assert_called_with(mocker.ANY, 30)
+        retry_with_timeout.assert_called_with(mocker.ANY, 30, log=mocker.ANY)
 
     def test_custom_timeout_can_be_set(self, mocker, region):
         mocker.patch("clickshot.element.Mouse")
@@ -288,7 +288,7 @@ class TestWaitUntilVisible:
 
         element.wait_until_visible(timeout_seconds=15)
 
-        retry_with_timeout.assert_called_with(mocker.ANY, 15)
+        retry_with_timeout.assert_called_with(mocker.ANY, 15, log=mocker.ANY)
 
 
 class TestSaveLastScreenshot:
