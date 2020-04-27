@@ -31,7 +31,7 @@ class TestRetry:
             (41, NormalTestError),
             (51, NormalTestError),
         ]
-        time.monotonic.side_effect = [s[0] for s in method_timing]
+        time.monotonic.side_effect = [0] + [s[0] for s in method_timing]
         method = mocker.Mock(side_effect=[s[1] for s in method_timing])
 
         with pytest.raises(NormalTestError):
@@ -58,7 +58,7 @@ class TestRetry:
             (41, 44),
             (51, 45),
         ]
-        time.monotonic.side_effect = [s[0] for s in method_timing]
+        time.monotonic.side_effect = [0] + [s[0] for s in method_timing]
         method = mocker.Mock(side_effect=[s[1] for s in method_timing])
 
         result = retry_with_timeout(method, 30)
@@ -76,7 +76,7 @@ class TestRetry:
             (41, 44),
             (51, 45),
         ]
-        time.monotonic.side_effect = [s[0] for s in method_timing]
+        time.monotonic.side_effect = [0] + [s[0] for s in method_timing]
         method = mocker.Mock(side_effect=[s[1] for s in method_timing])
 
         with pytest.raises(AbortedTestError):
@@ -93,7 +93,7 @@ class TestRetry:
             (41, FileNotFoundError("error message")),
             (51, FileNotFoundError("error message")),
         ]
-        time.monotonic.side_effect = [s[0] for s in method_timing]
+        time.monotonic.side_effect = [0] + [s[0] for s in method_timing]
         method = mocker.Mock(side_effect=[s[1] for s in method_timing])
 
         with pytest.raises(FileNotFoundError):
