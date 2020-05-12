@@ -259,7 +259,7 @@ description = "Monitor and control user input devices"
 name = "pynput"
 optional = false
 python-versions = "*"
-version = "1.4.5"
+version = "1.6.8"
 
 [package.dependencies]
 pyobjc-framework-Quartz = ">=3.0"
@@ -663,9 +663,9 @@ pyhamcrest = [
     {file = "PyHamcrest-1.10.1.tar.gz", hash = "sha256:f7ae19ddfd71f11a421bcec9608d708c0fab816db98b51fdbc672a6d99a30874"},
 ]
 pynput = [
-    {file = "pynput-1.4.5-py2.py3-none-any.whl", hash = "sha256:7c91f76abd13f24fd6ce3bdce6e6a6c33e19ce368c0ba9e77a0ec1e9d2b1bee2"},
-    {file = "pynput-1.4.5-py3.7.egg", hash = "sha256:023b262bae9afca2a1f97a6ae16ecc9e1bd51307484870d6370ec6531be7f46e"},
-    {file = "pynput-1.4.5.tar.gz", hash = "sha256:562468f5da7988b2d5114b1a1154239ce7ca492da55c620c82a5962fc060efd8"},
+    {file = "pynput-1.6.8-py2.py3-none-any.whl", hash = "sha256:42d6d58abe401a4c98ea04e443e61f74b6b0f97672f42042f566c68700ad0c65"},
+    {file = "pynput-1.6.8-py3.7.egg", hash = "sha256:dffcf42299aa25248d1a508b14f988b3a55aad8afbf42dfa3a8f259cd96bb15b"},
+    {file = "pynput-1.6.8.tar.gz", hash = "sha256:68c1863d6a1520b44b6a915e866cbfa1b8d127aef9289f25183c93e28ee5049a"},
 ]
 pyobjc-core = [
     {file = "pyobjc-core-6.1.tar.gz", hash = "sha256:1a0fbf012fb575e0adf8c18cfd4453e657cc2c0deb2660c529bf524ba4c9149a"},
