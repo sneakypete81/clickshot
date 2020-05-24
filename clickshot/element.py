@@ -18,6 +18,10 @@ class ElementConfig(NamedTuple):
     click_offset: Optional[Tuple[int, int]] = None
 
 
+def interactive_warning(message, category, filename, lineno, file=None, line=None):
+    print(f"\n{message}")
+
+
 class Element:
     def __init__(self, element_config: ElementConfig, region: "Region") -> None:
         self.boundary = region._boundary
@@ -33,6 +37,10 @@ class Element:
             self.click_offset = (0, 0)
         else:
             self.click_offset = element_config.click_offset
+
+        if self.config.interactive:
+            warnings.showwarning = interactive_warning
+            warnings.simplefilter("always", Warning)
 
         self._locater = Locater()
         self._mouse = Mouse()
@@ -53,6 +61,14 @@ class Element:
 
         try:
             x, y = self._locate_centre_with_retry(timeout_seconds)
+
+        except FileNotFoundError:
+            self.save_last_screenshot()
+            if self.config.interactive:
+                if self._ask_to_ignore_missing_file(is_clicking=True):
+                    return
+            raise
+
         except Exception:
             self.save_last_screenshot()
             raise
@@ -77,6 +93,14 @@ class Element:
 
         try:
             self._locate_centre_with_retry(timeout_seconds)
+
+        except FileNotFoundError:
+            self.save_last_screenshot()
+            if self.config.interactive:
+                if self._ask_to_ignore_missing_file(is_clicking=False):
+                    return
+            raise
+
         except Exception:
             self.save_last_screenshot()
             raise
@@ -88,7 +112,9 @@ class Element:
         if self._mouse.position == (0, 0):
             self._mouse.position = (10, 10)
 
-        rect = retry_with_timeout(self._locate, timeout_seconds, log=True)
+        rect = retry_with_timeout(
+            self._locate, timeout_seconds, log=self.config.interactive
+        )
         return self._find_centre(rect)
 
     def _locate(self) -> Rect:
@@ -115,6 +141,25 @@ class Element:
 
         print(f"Expected Image: {self.image_path}")
         print(f"Screenshot: {unique_screenshot_path}")
+
+    def _ask_to_ignore_missing_file(self, is_clicking: bool) -> bool:
+        answer = input(
+            "Image file not found, would you like to continue anyway (y/N)? "
+        )
+        print(f"'{answer}'")
+        if answer.lower() != "y":
+            return False
+
+        if is_clicking:
+            print(f"Ok, please click {self.full_name} within the next 5 seconds...")
+        else:
+            print(
+                f"Ok, please ensure the window under test has the focus back "
+                "within the next 5 seconds..."
+            )
+
+        time.sleep(5)
+        return True
 
     @staticmethod
     def _find_centre(rect: Rect) -> Tuple[int, int]:
