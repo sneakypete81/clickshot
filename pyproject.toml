@@ -16,7 +16,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.6"
 
-mss = "^4.0"
+mss = ">=4,<6"
 numpy = "^1.17"
 opencv-python = "^4.1"
 pynput = "^1.4"
